@@ -16,7 +16,7 @@
     "prebuild": "npm-run-all clean setup-dist-dir",
     "build": "npm-run-all --parallel build-less copy-assets build-elm",
     "prestart": "npm run build",
-    "start": "npm-run-all --parallel watch-less watch-assets watch-elm browser-sync",
+    "start": "npm-run-all --parallel watch-less watch-assets watch-elm browser-sync"
   },
   "keywords": [
     "elm",

@@ -4,7 +4,19 @@
   "description": "An Elm implementation of Conway's Game of Life",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf dist",
+    "setup-dist-dir": "mkdirp dist/scripts dist/styles",
+    "build-less": "lessc src/styles/main.less > dist/styles/main.css",
+    "copy-assets": "cpx src/assets/**/* > dist/",
+    "build-elm": "elm-make src/scripts/Main.elm --output dist/scripts/main.js",
+    "watch-less": "chokidar src/styles/**/* -c 'npm run build-less'",
+    "watch-assets": "chokidar src/assets/**/* -c 'npm run copy-assets'",
+    "watch-elm": "chokidar src/scripts/**/* -c 'npm run build-elm'",
+    "browser-sync": "browser-sync start --server ./dist --files ./dist",
+    "prebuild": "npm-run-all clean setup-dist-dir",
+    "build": "npm-run-all --parallel build-less copy-assets build-elm",
+    "prestart": "npm run build",
+    "start": "npm-run-all --parallel watch-less watch-assets watch-elm browser-sync",
   },
   "keywords": [
     "elm",
@@ -12,5 +24,15 @@
     "conway"
   ],
   "author": "Bryan Brick",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "browser-sync": "^2.13.0",
+    "chokidar-cli": "^1.2.0",
+    "cpx": "^1.3.1",
+    "elm": "^0.17.0",
+    "less": "^2.7.1",
+    "mkdirp": "^0.5.1",
+    "npm-run-all": "^2.2.0",
+    "rimraf": "^2.5.2"
+  }
 }

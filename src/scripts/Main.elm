@@ -3,12 +3,13 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (..)
+import Time exposing (Time, second)
 
 main : Program Never
 main =
   App.program
     { init = init 5 5
-    , view = view
+    , view = mainView
     , update = update
     , subscriptions = subscriptions
     }
@@ -20,6 +21,7 @@ type alias Model =
     { grid : Grid
     , playing : Bool
     , speed : Int
+    , time : Float
     }
 
 
@@ -29,6 +31,7 @@ init width height =
    { grid = createGrid width height
    , playing = False
    , speed = 5
+   , time = 0.0
    }
   , Cmd.none
   )
@@ -120,7 +123,7 @@ updateGrid grid =
 
 type Msg
     = NoOp
-    | Tick
+    | Tick Float
     | Start
     | Pause
     | IncreaseSpeed
@@ -136,7 +139,7 @@ update msg model =
     NoOp ->
       model ! []
 
-    Tick ->
+    Tick newTime ->
       if model.playing then
         ( { model | grid = updateGrid model.grid }, Cmd.none )
       else
@@ -183,7 +186,6 @@ update msg model =
           case Array.get 0 model.grid of
               Nothing -> 0
               Just row -> Array.length row
-
       in
           ( { model | grid = createGrid rows cols }, Cmd.none )
 
@@ -206,14 +208,14 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
-view : Model -> Html Msg
-view model =
-  div [] [ gridView model.grid ]
-
+mainView : Model -> Html Msg
+mainView model =
+  div [class "container"]
+    [ gridView model.grid ]
 -- SUBSCRIPTIONS
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-  Sub.none
+  Time.every second Tick
 

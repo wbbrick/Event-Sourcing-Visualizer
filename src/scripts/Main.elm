@@ -20,8 +20,7 @@ type alias Position =
   , col : Int
   }
 
-type alias Row = Array CellState
-type alias Grid = Array Row
+type alias Grid = Array (Array CellState)
 
 createGrid : Int -> Int -> Grid
 createGrid width height =
@@ -52,20 +51,35 @@ getTotalLivingNeighbors grid position =
   List.length
     (List.filter (\cell -> cell == Alive) (getNeighborValues grid position))
 
-updateCell : Grid -> Position -> CellState -> Grid
-updateCell grid {row, col} cellState =
-  Array.set
-    row
-    Array.set col cellState (Array.get row grid)
-    grid
+setCell : Grid -> Position -> CellState -> Grid
+setCell grid {row, col} cellState =
+  let maybeRowArr = Array.get row grid in
+  case maybeRowArr of
+      Nothing -> createGrid 0 0
+      Just rowArr ->
+        let colVal = (Array.get col rowArr) in
+        case colVal of
+          Nothing -> createGrid 0 0
+          Just col -> Array.set row (Array.set col cellState rowArr) grid
 
-updateRow : Row -> Row
-updateRow row =
-  Array.map updateCell row
+-- updateCell : Grid -> Position -> Grid
+-- updateCell grid position =
+--   let
+--     livingNeighbors =
+--       getTotalLivingNeighbors grid position
+--     cellSetter =
+--       setCell grid position
+--   in
+--     case livingNeighbors of
+--         0 -> cellSetter Dead
 
-updateGrid : Grid -> Grid
-updateGrid grid =
-  Array.map updateRow grid
+
+-- updateGrid : Grid -> Grid
+-- updateGrid grid =
+--   Array.indexedMap
+--     (\rowNum row ->
+--        Array.indexedMap (\colNum cell -> setCell grid {row = rowNum, col = colNum} Dead ) row
+--     ) grid
 
 -- UPDATE
 
@@ -80,15 +94,15 @@ type Msg
     | UpdateCell Int Int CellState
     | ClearGrid
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-  case msg of
-    NoOp ->
-      model ! []
+-- update : Msg -> Model -> ( Model, Cmd Msg )
+-- update msg model =
+--   case msg of
+--     NoOp ->
+--       model ! []
 
-    Tick ->
-      if model.playing then
-        { model
-          | grid = updateGrid model.grid
-        }
-      else model
+--     Tick ->
+--       if model.playing then
+--         { model
+--           | grid = updateGrid model.grid
+--         }
+--       else model

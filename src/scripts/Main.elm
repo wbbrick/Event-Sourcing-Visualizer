@@ -59,32 +59,35 @@ setCell grid {row, col} cellState =
       Just rowArr -> Array.set row (Array.set col cellState rowArr) grid
 
 
-updateCell : Grid -> Position -> Grid
-updateCell grid position =
+getNewCellState : Grid -> Position -> CellState
+getNewCellState grid position =
   let
     livingNeighbors =
       getTotalLivingNeighbors grid position
     currentState =
       getCellState grid position
-    cellSetter =
-      setCell grid position
   in
     -- maintain status quo for cells with 2 living neighbors
     if livingNeighbors == 2 then
-      grid
+      currentState
     -- bring cells with 3 living neighbors to life
     else if livingNeighbors == 3 then
-      cellSetter Alive
+      Alive
     -- kill under- and over-populated cells
     else
-      cellSetter Dead
+      Dead
 
--- updateGrid : Grid -> Grid
--- updateGrid grid =
---   Array.indexedMap
---     (\rowNum row ->
---        Array.indexedMap (\colNum cell -> setCell grid {row = rowNum, col = colNum} Dead ) row
---     ) grid
+
+updateCell : Grid -> Position -> Grid
+updateCell grid position =
+  setCell grid position (getNewCellState grid position)
+
+updateGrid : Grid -> Grid
+updateGrid grid =
+  Array.indexedMap
+    (\rowNum row ->
+       Array.indexedMap (\colNum cell -> getNewCellState grid {row = rowNum, col = colNum} ) row
+    ) grid
 
 -- UPDATE
 
@@ -96,18 +99,52 @@ type Msg
     | IncreaseSpeed
     | DecreaseSpeed
     | ChangeSpeed Int
-    | UpdateCell Int Int CellState
+    | SetCell Int Int CellState
     | ClearGrid
 
--- update : Msg -> Model -> ( Model, Cmd Msg )
--- update msg model =
---   case msg of
---     NoOp ->
---       model ! []
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
+    NoOp ->
+      model ! []
 
---     Tick ->
---       if model.playing then
---         { model
---           | grid = updateGrid model.grid
---         }
---       else model
+    Tick ->
+      if model.playing then
+        ( { model | grid = updateGrid model.grid }, Cmd.none )
+      else
+        ( model, Cmd.none )
+
+    Start ->
+      ( { model | playing = True }, Cmd.none )
+
+    Pause ->
+      ( { model | playing = False }, Cmd.none )
+
+    IncreaseSpeed ->
+      ( { model | speed = model.speed + 1 }, Cmd.none )
+
+    DecreaseSpeed ->
+      ( { model | speed = model.speed - 1 }, Cmd.none )
+
+    ChangeSpeed newSpeed ->
+      ( { model | speed = newSpeed }, Cmd.none )
+
+    SetCell row col cellState ->
+      let
+        newGrid =
+          setCell model.grid { row = row, col = col } cellState
+      in
+          ( { model | grid = newGrid }, Cmd.none )
+
+    ClearGrid ->
+      let
+        rows =
+          Array.length model.grid
+
+        cols =
+          case Array.get 0 model.grid of
+              Nothing -> 0
+              Just row -> Array.length row
+
+      in
+          ( { model | grid = createGrid rows cols }, Cmd.none )

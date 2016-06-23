@@ -1,7 +1,7 @@
 import Html exposing (..)
 import Html.App as App
 -- import Html.Attributes exposing (..)
--- import Html.Events exposing (..)
+import Html.Events exposing (..)
 import Array exposing (..)
 
 main : Program Never
@@ -97,10 +97,17 @@ getNewCellState grid position =
     else
       Dead
 
-
 updateCell : Grid -> Position -> Grid
 updateCell grid position =
   setCell grid position (getNewCellState grid position)
+
+toggleCell : Grid -> Position -> Grid
+toggleCell grid position =
+  let currentCellState = getCellState grid position in
+  case currentCellState of
+      Alive -> setCell grid position Dead
+      Dead -> setCell grid position Alive
+
 
 updateGrid : Grid -> Grid
 updateGrid grid =
@@ -119,6 +126,7 @@ type Msg
     | IncreaseSpeed
     | DecreaseSpeed
     | ChangeSpeed Int
+    | ToggleCell Int Int
     | SetCell Int Int CellState
     | ClearGrid
 
@@ -156,6 +164,16 @@ update msg model =
       in
           ( { model | grid = newGrid }, Cmd.none )
 
+    ToggleCell row col ->
+      let
+        newState = case (getCellState model.grid { row = row, col = col } ) of
+                       Alive -> Dead
+                       Dead -> Alive
+        newGrid =
+          setCell model.grid { row = row, col = col } newState
+      in
+          ( { model | grid = newGrid }, Cmd.none )
+
     ClearGrid ->
       let
         rows =
@@ -175,9 +193,10 @@ update msg model =
 
 cellView : CellState -> Html Msg
 cellView cellState =
+  let cell = td [ onClick ( ToggleCell 0 0 ) ] in
   case cellState of
-      Alive -> td [ ] [ text "o" ]
-      Dead ->  td [ ] [ text "x" ]
+      Alive -> cell [ text "o" ]
+      Dead ->  cell [ text "x" ]
 
 rowView : (Array CellState) -> Html Msg
 rowView row =

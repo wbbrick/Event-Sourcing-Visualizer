@@ -12,7 +12,7 @@
     "watch-less": "chokidar src/styles/**/* -c 'npm run build-less'",
     "watch-assets": "npm run copy-assets -- -w",
     "watch-elm": "chokidar src/scripts/**/* -c 'npm run build-elm'",
-    "browser-sync": "browser-sync start --server ./dist --files ./dist",
+    "browser-sync": "browser-sync start --server ./dist --files ./dist --no-notify",
     "prebuild": "npm-run-all clean setup-dist-dir",
     "build": "npm-run-all --parallel build-less copy-assets build-elm",
     "prestart": "npm run build",

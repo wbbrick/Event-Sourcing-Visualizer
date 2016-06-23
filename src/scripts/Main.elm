@@ -26,8 +26,8 @@ createGrid : Int -> Int -> Grid
 createGrid width height =
   Array.initialize height (\_ -> Array.initialize width (\_ -> Dead ) )
 
-getCellValue : Grid -> Position -> CellState
-getCellValue grid {row, col} =
+getCellState : Grid -> Position -> CellState
+getCellState grid {row, col} =
   case Maybe.andThen (Array.get col grid) (Array.get row) of
       Just val -> val
       Nothing -> Dead
@@ -44,7 +44,7 @@ getNeighborPositions {row, col} =
 
 getNeighborValues : Grid -> Position -> List CellState
 getNeighborValues grid position =
-  List.map (getCellValue grid) (getNeighborPositions position )
+  List.map (getCellState grid) (getNeighborPositions position )
 
 getTotalLivingNeighbors : Grid -> Position -> Int
 getTotalLivingNeighbors grid position =
@@ -59,17 +59,25 @@ setCell grid {row, col} cellState =
       Just rowArr -> Array.set row (Array.set col cellState rowArr) grid
 
 
--- updateCell : Grid -> Position -> Grid
--- updateCell grid position =
---   let
---     livingNeighbors =
---       getTotalLivingNeighbors grid position
---     cellSetter =
---       setCell grid position
---   in
---     case livingNeighbors of
---         0 -> cellSetter Dead
-
+updateCell : Grid -> Position -> Grid
+updateCell grid position =
+  let
+    livingNeighbors =
+      getTotalLivingNeighbors grid position
+    currentState =
+      getCellState grid position
+    cellSetter =
+      setCell grid position
+  in
+    -- maintain status quo for cells with 2 living neighbors
+    if livingNeighbors == 2 then
+      grid
+    -- bring cells with 3 living neighbors to life
+    else if livingNeighbors == 3 then
+      cellSetter Alive
+    -- kill under- and over-populated cells
+    else
+      cellSetter Dead
 
 -- updateGrid : Grid -> Grid
 -- updateGrid grid =

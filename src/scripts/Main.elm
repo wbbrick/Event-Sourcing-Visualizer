@@ -1,17 +1,37 @@
--- import Html exposing (..)
--- import Html.App as App
+import Html exposing (..)
+import Html.App as App
 -- import Html.Attributes exposing (..)
 -- import Html.Events exposing (..)
 import Array exposing (..)
 
+main : Program Never
+main =
+  App.program
+    { init = init 5 5
+    , view = view
+    , update = update
+    , subscriptions = subscriptions
+    }
+
+
 -- Model
 
--- The state of the program
 type alias Model =
     { grid : Grid
     , playing : Bool
     , speed : Int
     }
+
+
+init : Int -> Int -> (Model, Cmd Msg)
+init width height =
+  (
+   { grid = createGrid width height
+   , playing = False
+   , speed = 5
+   }
+  , Cmd.none
+  )
 
 type CellState = Alive | Dead
 
@@ -148,3 +168,26 @@ update msg model =
 
       in
           ( { model | grid = createGrid rows cols }, Cmd.none )
+
+
+-- VIEW
+
+
+view : Model -> Html Msg
+view model =
+  div [] [ text "hello world" ]
+    -- [ h2 [] [text model.topic]
+    -- , button [ onClick MorePlease ] [ text "More Please!" ]
+    -- , br [] []
+    -- , img [src model.gifUrl] []
+    -- ]
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+  Sub.none
+

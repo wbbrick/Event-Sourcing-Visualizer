@@ -67,3 +67,16 @@ updateGrid : Grid -> Grid
 updateGrid grid =
   Array.map updateRow grid
 
+-- UPDATE
+
+type Msg
+    = NoOp
+    | Tick
+    | Start
+    | Pause
+    | IncreaseSpeed
+    | DecreaseSpeed
+    | ChangeSpeed Int
+    | UpdateCell Int Int CellState
+    | ClearGrid
+

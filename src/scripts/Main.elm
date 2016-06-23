@@ -1,6 +1,6 @@
 import Html exposing (..)
 import Html.App as App
--- import Html.Attributes exposing (..)
+import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (..)
 
@@ -204,7 +204,7 @@ rowView rowNum row =
 
 gridView : Array (Array CellState) -> Html Msg
 gridView grid =
-  table [ ] ( Array.toList ( Array.indexedMap rowView grid ) )
+  table [ class "grid-table" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
 view : Model -> Html Msg
 view model =

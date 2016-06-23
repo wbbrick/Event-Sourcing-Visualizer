@@ -209,13 +209,6 @@ gridView grid =
 view : Model -> Html Msg
 view model =
   div [] [ gridView model.grid ]
-    -- [ h2 [] [text model.topic]
-    -- , button [ onClick MorePlease ] [ text "More Please!" ]
-    -- , br [] []
-    -- , img [src model.gifUrl] []
-    -- ]
-
-
 
 -- SUBSCRIPTIONS
 

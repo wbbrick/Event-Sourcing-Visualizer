@@ -193,10 +193,10 @@ update msg model =
 
 cellView : Int -> Int -> CellState -> Html Msg
 cellView rowNum colNum cellState =
-  let cell = td [ onClick ( ToggleCell rowNum colNum ) ] in
+  let clickEvent = onClick ( ToggleCell rowNum colNum ) in
   case cellState of
-      Alive -> cell [ text "o" ]
-      Dead ->  cell [ text "x" ]
+      Alive -> td [ clickEvent, class "alive" ] [ text "o" ]
+      Dead ->  td [ clickEvent, class "dead" ] [ text "x" ]
 
 rowView : Int -> (Array CellState) -> Html Msg
 rowView rowNum row =

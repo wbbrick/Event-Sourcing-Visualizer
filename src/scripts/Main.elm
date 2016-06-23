@@ -80,3 +80,15 @@ type Msg
     | UpdateCell Int Int CellState
     | ClearGrid
 
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
+  case msg of
+    NoOp ->
+      model ! []
+
+    Tick ->
+      if model.playing then
+        { model
+          | grid = updateGrid model.grid
+        }
+      else model

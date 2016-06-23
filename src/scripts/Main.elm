@@ -173,9 +173,23 @@ update msg model =
 -- VIEW
 
 
+cellView : CellState -> Html Msg
+cellView cellState =
+  case cellState of
+      Alive -> td [ ] [ text "o" ]
+      Dead ->  td [ ] [ text "x" ]
+
+rowView : (Array CellState) -> Html Msg
+rowView row =
+  tr [ ] ( Array.toList ( Array.map cellView row ) )
+
+gridView : Array (Array CellState) -> Html Msg
+gridView grid =
+  table [ ] ( Array.toList ( Array.map rowView grid ) )
+
 view : Model -> Html Msg
 view model =
-  div [] [ text "hello world" ]
+  div [] [ gridView model.grid ]
     -- [ h2 [] [text model.topic]
     -- , button [ onClick MorePlease ] [ text "More Please!" ]
     -- , br [] []

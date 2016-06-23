@@ -56,11 +56,8 @@ setCell grid {row, col} cellState =
   let maybeRowArr = Array.get row grid in
   case maybeRowArr of
       Nothing -> createGrid 0 0
-      Just rowArr ->
-        let colVal = (Array.get col rowArr) in
-        case colVal of
-          Nothing -> createGrid 0 0
-          Just col -> Array.set row (Array.set col cellState rowArr) grid
+      Just rowArr -> Array.set row (Array.set col cellState rowArr) grid
+
 
 -- updateCell : Grid -> Position -> Grid
 -- updateCell grid position =

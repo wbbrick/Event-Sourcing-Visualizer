@@ -1,7 +1,7 @@
-import Html exposing (..)
-import Html.App as App
-import Html.Attributes exposing (..)
-import Html.Events exposing (..)
+-- import Html exposing (..)
+-- import Html.App as App
+-- import Html.Attributes exposing (..)
+-- import Html.Events exposing (..)
 import Array exposing (..)
 
 -- Model
@@ -21,7 +21,7 @@ type alias Position =
   }
 
 type alias Row = Array CellState
-type alias Grid = Array Array CellState
+type alias Grid = Array Row
 
 createGrid : Int -> Int -> Grid
 createGrid width height =
@@ -50,7 +50,7 @@ getNeighborValues grid position =
 getTotalLivingNeighbors : Grid -> Position -> Int
 getTotalLivingNeighbors grid position =
   List.length
-    List.filter (\cell -> cell == Alive) (getNeighborValues grid position) 
+    (List.filter (\cell -> cell == Alive) (getNeighborValues grid position))
 
 updateCell : Grid -> Position -> CellState -> Grid
 updateCell grid {row, col} cellState =

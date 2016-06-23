@@ -191,20 +191,20 @@ update msg model =
 -- VIEW
 
 
-cellView : CellState -> Html Msg
-cellView cellState =
-  let cell = td [ onClick ( ToggleCell 0 0 ) ] in
+cellView : Int -> Int -> CellState -> Html Msg
+cellView rowNum colNum cellState =
+  let cell = td [ onClick ( ToggleCell rowNum colNum ) ] in
   case cellState of
       Alive -> cell [ text "o" ]
       Dead ->  cell [ text "x" ]
 
-rowView : (Array CellState) -> Html Msg
-rowView row =
-  tr [ ] ( Array.toList ( Array.map cellView row ) )
+rowView : Int -> (Array CellState) -> Html Msg
+rowView rowNum row =
+  tr [ ] ( Array.toList ( Array.indexedMap ( cellView rowNum ) row ) )
 
 gridView : Array (Array CellState) -> Html Msg
 gridView grid =
-  table [ ] ( Array.toList ( Array.map rowView grid ) )
+  table [ ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
 view : Model -> Html Msg
 view model =

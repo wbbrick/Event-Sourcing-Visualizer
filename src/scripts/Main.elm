@@ -111,13 +111,18 @@ toggleCell grid position =
       Alive -> setCell grid position Dead
       Dead -> setCell grid position Alive
 
-
 updateGrid : Grid -> Grid
 updateGrid grid =
   Array.indexedMap
     (\rowNum row ->
        Array.indexedMap (\colNum cell -> getNewCellState grid {row = rowNum, col = colNum} ) row
     ) grid
+
+getStartButtonText : Bool -> String
+getStartButtonText isPlaying =
+  case isPlaying of
+      True -> "Stop"
+      False -> "Start"
 
 -- UPDATE
 
@@ -126,6 +131,7 @@ type Msg
     | Tick Float
     | Start
     | Pause
+    | TogglePlaying
     | IncreaseSpeed
     | DecreaseSpeed
     | ChangeSpeed Int
@@ -150,6 +156,9 @@ update msg model =
 
     Pause ->
       ( { model | playing = False }, Cmd.none )
+
+    TogglePlaying ->
+      ( { model | playing = not model.playing }, Cmd.none )
 
     IncreaseSpeed ->
       ( { model | speed = model.speed + 1 }, Cmd.none )
@@ -208,10 +217,29 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
+navBar : Model -> Html Msg
+navBar model =
+  div [ class "container" ]
+  [
+   div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ],
+   div [ class "collapse navbar-collapse" ]
+     [
+      ul  [ class "nav navbar-nav navbar-right" ]
+        [
+         li [] [ a [ href "#", onClick TogglePlaying ] [ text ( getStartButtonText model.playing ) ] ]
+        ]
+     ]
+  ]
+
 mainView : Model -> Html Msg
 mainView model =
-  div [class "container"]
-    [ gridView model.grid ]
+  div []
+    [
+     nav [ class "navbar navbar-default" ] [ navBar model ],
+     div [ class "container" ] [ gridView model.grid ]
+    ]
+
+
 -- SUBSCRIPTIONS
 
 

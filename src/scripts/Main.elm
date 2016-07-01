@@ -3,6 +3,7 @@ import Html.App as App
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (..)
+import Json.Decode as Json
 import Time exposing (Time, second)
 
 main : Program Never
@@ -214,10 +215,12 @@ update msg model =
 
 cellView : Int -> Int -> CellState -> Html Msg
 cellView rowNum colNum cellState =
-  let clickEvent = onClick ( ToggleCell rowNum colNum ) in
+  let
+    clickEvent = onWithOptions "click" defaultOptions (Json.succeed ( ToggleCell rowNum colNum ) )
+    mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.succeed ( ToggleCell rowNum colNum ) ) in
   case cellState of
-      Alive -> td [ clickEvent, class "alive" ] [ text "o" ]
-      Dead ->  td [ clickEvent, class "dead" ] [ text "x" ]
+      Alive -> td [ mouseEnterEvent, clickEvent, class "alive" ] [ text "o" ]
+      Dead ->  td [ mouseEnterEvent, clickEvent, class "dead" ] [ text "x" ]
 
 rowView : Int -> (Array CellState) -> Html Msg
 rowView rowNum row =
@@ -225,7 +228,7 @@ rowView rowNum row =
 
 gridView : Array (Array CellState) -> Html Msg
 gridView grid =
-  table [ class "grid-table" ] ( Array.toList ( Array.indexedMap rowView grid ) )
+  table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
 navBar : Model -> Html Msg
 navBar model =
@@ -256,4 +259,3 @@ mainView model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
   Time.every second Tick
-

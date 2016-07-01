@@ -8,7 +8,7 @@ import Time exposing (Time, second)
 main : Program Never
 main =
   App.program
-    { init = init 5 5
+    { init = init 20 20
     , view = mainView
     , update = update
     , subscriptions = subscriptions

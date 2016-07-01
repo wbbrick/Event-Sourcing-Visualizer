@@ -51,19 +51,24 @@ createGrid width height =
 
 getCellState : Grid -> Position -> CellState
 getCellState grid {row, col} =
-  case Maybe.andThen (Array.get col grid) (Array.get row) of
+  case Maybe.andThen (Array.get row grid) (Array.get col) of
       Just val -> val
       Nothing -> Dead
 
 getNeighborPositions : Position -> List Position
 getNeighborPositions {row, col} =
-  List.foldl
-    (\posn posns -> List.append
-       ( (\x -> List.map (\y -> {row = x, col = y} ) [col-1 .. col+1] ) posn)
-       posns
-    )
-    []
-    [row-1 .. row+1]
+  let filter = List.filter (\posn -> posn.row /= row || posn.col /= col) in
+  filter
+  (
+   List.foldl
+     (\posn posns -> List.append
+        ( (\x -> List.map (\y -> {row = x, col = y} ) [col-1 .. col+1] ) posn)
+        posns
+     )
+     []
+     [row-1 .. row+1]
+  )
+
 
 getNeighborValues : Grid -> Position -> List CellState
 getNeighborValues grid position =
@@ -115,8 +120,13 @@ updateGrid : Grid -> Grid
 updateGrid grid =
   Array.indexedMap
     (\rowNum row ->
-       Array.indexedMap (\colNum cell -> getNewCellState grid {row = rowNum, col = colNum} ) row
-    ) grid
+       Array.indexedMap
+       (\colNum cell ->
+          getNewCellState grid {row = rowNum, col = colNum}
+       )
+       row
+    )
+    grid
 
 getStartButtonText : Bool -> String
 getStartButtonText isPlaying =

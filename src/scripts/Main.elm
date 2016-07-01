@@ -23,6 +23,8 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
+    , dragging : Bool
+    , dragState : CellState
     }
 
 
@@ -33,6 +35,8 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
+   , dragging = False
+   , dragState = Alive
    }
   , Cmd.none
   )
@@ -148,7 +152,10 @@ type Msg
     | ChangeSpeed Int
     | ToggleCell Int Int
     | SetCell Int Int CellState
+    | SetEnteredCell Int Int
     | ClearGrid
+    | DraggingOff
+    | DraggingOn Int Int
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -183,9 +190,16 @@ update msg model =
     SetCell row col cellState ->
       let
         newGrid =
-          setCell model.grid { row = row, col = col } cellState
-      in
-          ( { model | grid = newGrid }, Cmd.none )
+          setCell model.grid { row = row, col = col } cellState in
+      ( { model | grid = newGrid }, Cmd.none )
+
+    SetEnteredCell row col ->
+      let
+        newGrid =
+          setCell model.grid { row = row, col = col } model.dragState in
+      case ( model.dragging ) of
+        True -> ( { model | grid = newGrid }, Cmd.none )
+        False -> ( model, Cmd.none )
 
     ToggleCell row col ->
       let
@@ -193,9 +207,8 @@ update msg model =
                        Alive -> Dead
                        Dead -> Alive
         newGrid =
-          setCell model.grid { row = row, col = col } newState
-      in
-          ( { model | grid = newGrid }, Cmd.none )
+          setCell model.grid { row = row, col = col } newState in
+      ( { model | grid = newGrid }, Cmd.none )
 
     ClearGrid ->
       let
@@ -205,9 +218,19 @@ update msg model =
         cols =
           case Array.get 0 model.grid of
               Nothing -> 0
-              Just row -> Array.length row
-      in
-          ( { model | grid = createGrid rows cols }, Cmd.none )
+              Just row -> Array.length row in
+      ( { model | grid = createGrid rows cols }, Cmd.none )
+
+    DraggingOn row col ->
+      let
+        newState = case (getCellState model.grid { row = row, col = col } ) of
+                     Alive -> Dead
+                     Dead -> Alive in
+      ( { model | dragging = True, dragState = newState }, Cmd.none )
+
+    DraggingOff ->
+      ( { model | dragging = False }, Cmd.none )
+
 
 
 -- VIEW
@@ -216,11 +239,13 @@ update msg model =
 cellView : Int -> Int -> CellState -> Html Msg
 cellView rowNum colNum cellState =
   let
+    mouseDownEvent = onWithOptions "mousedown" defaultOptions (Json.succeed ( DraggingOn rowNum colNum ) )
+    mouseUpEvent = onWithOptions "mouseup" defaultOptions (Json.succeed ( DraggingOff ) )
     clickEvent = onWithOptions "click" defaultOptions (Json.succeed ( ToggleCell rowNum colNum ) )
-    mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.succeed ( ToggleCell rowNum colNum ) ) in
+    mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.succeed ( SetEnteredCell rowNum colNum ) ) in
   case cellState of
-      Alive -> td [ mouseEnterEvent, clickEvent, class "alive" ] [ text "o" ]
-      Dead ->  td [ mouseEnterEvent, clickEvent, class "dead" ] [ text "x" ]
+      Alive -> td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "alive" ] [ text "o" ]
+      Dead ->  td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "dead" ] [ text "x" ]
 
 rowView : Int -> (Array CellState) -> Html Msg
 rowView rowNum row =

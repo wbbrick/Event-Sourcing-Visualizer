@@ -5,6 +5,10 @@
     height: 100%;
 }
 
+.main-view {
+    position: relative;
+}
+
 .nav {
 
     label[for="speed-input"] {
@@ -42,6 +46,22 @@
     }
 }
 
+.reset-box {
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    height: 75px;
+    width: 175px;
+    text-align: center;
+    input {
+        margin: 5px;
+        width: 50px;
+        text-align: center;
+    }
+}
+
+//utility
+
 .noselect {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -49,4 +69,12 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.visible {
+    display: block;
+}
+
+.hidden {
+    display: none;
 }

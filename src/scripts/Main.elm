@@ -4,7 +4,7 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Array exposing (..)
 import String exposing (toInt)
-import Json.Decode as Json
+import Json.Decode exposing (..)
 import Time exposing (Time, second)
 
 main : Program Never
@@ -24,6 +24,7 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
+    , resetBoxVisible : Bool
     , dragging : Bool
     , dragState : CellState
     }
@@ -36,6 +37,7 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
+   , resetBoxVisible = False
    , dragging = False
    , dragState = Alive
    }
@@ -157,6 +159,7 @@ type Msg
     | ClearGrid
     | DraggingOff
     | DraggingOn Int Int
+    | ToggleResetBox
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -232,6 +235,8 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
+    ToggleResetBox ->
+      ( { model | resetBoxVisible = not model.resetBoxVisible }, Cmd.none )
 
 
 -- VIEW
@@ -240,10 +245,10 @@ update msg model =
 cellView : Int -> Int -> CellState -> Html Msg
 cellView rowNum colNum cellState =
   let
-    mouseDownEvent = onWithOptions "mousedown" defaultOptions (Json.succeed ( DraggingOn rowNum colNum ) )
-    mouseUpEvent = onWithOptions "mouseup" defaultOptions (Json.succeed ( DraggingOff ) )
-    clickEvent = onWithOptions "click" defaultOptions (Json.succeed ( ToggleCell rowNum colNum ) )
-    mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.succeed ( SetEnteredCell rowNum colNum ) ) in
+    mouseDownEvent = onWithOptions "mousedown" defaultOptions (Json.Decode.succeed ( DraggingOn rowNum colNum ) )
+    mouseUpEvent = onWithOptions "mouseup" defaultOptions (Json.Decode.succeed ( DraggingOff ) )
+    clickEvent = onWithOptions "click" defaultOptions (Json.Decode.succeed ( ToggleCell rowNum colNum ) )
+    mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.Decode.succeed ( SetEnteredCell rowNum colNum ) ) in
   case cellState of
       Alive -> td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "alive" ] [ text "o" ]
       Dead ->  td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "dead" ] [ text "x" ]
@@ -256,6 +261,21 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
+resetBox : Model -> Html Msg
+resetBox model =
+  let visibility = case model.resetBoxVisible of
+                     True -> "visible"
+                     False -> "hidden"
+      firstRow = ( Maybe.withDefault (Array.initialize 0 (\x -> Dead) ) ( Array.get 0 model.grid ) )
+      rows = Html.Attributes.value ( toString ( Array.length model.grid ) )
+      cols = Html.Attributes.value ( toString ( Array.length firstRow ) ) in
+  div [ class ( "well reset-box " ++ visibility ) ]
+    [
+     input [ class "reset row input", rows ] []
+    , text "x"
+    , input [ class "reset col input", cols ] []
+    ]
+
 navBar : Model -> Html Msg
 navBar model =
   div [ class "container" ]
@@ -263,7 +283,7 @@ navBar model =
    div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ]
   , div [ class "collapse navbar-collapse" ]
     [
-     button [ class "btn btn-primary navbar-btnMp", onClick TogglePlaying ]
+     button [ class "btn btn-primary navbar-btn", onClick TogglePlaying ]
          [ text ( getStartButtonText model.playing ) ]
     , ul  [ class "nav navbar-nav navbar-right" ]
       [
@@ -280,7 +300,7 @@ navBar model =
                   id "speed-input"
                  , type' "text"
                  , class "form-control speed-input"
-                 , value (toString model.speed)
+                 , Html.Attributes.value (toString model.speed)
                  , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
               , span [ class "input-group-btn" ]
                 [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
@@ -288,18 +308,19 @@ navBar model =
             ]
          ]
       , li []
-        [ a [ href "#", onClick ClearGrid ]
-            [ text "Clear Grid" ]
+        [ a [ href "#", onClick ToggleResetBox ]
+            [ text "Empy Grid" ]
         ]
       ]
     ]
   ]
+
 mainView : Model -> Html Msg
 mainView model =
   div []
     [
      nav [ class "navbar navbar-default" ] [ navBar model ]
-    , div [ class "container" ] [ gridView model.grid ]
+    , div [ class "container main-view" ] [ gridView model.grid, resetBox model ]
     ]
 
 

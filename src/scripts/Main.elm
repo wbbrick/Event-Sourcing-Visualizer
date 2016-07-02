@@ -263,37 +263,35 @@ navBar model =
    div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ]
   , div [ class "collapse navbar-collapse" ]
     [
-     ul  [ class "nav navbar-nav navbar-right" ]
-       [
-        li []
-          [
-           Html.form [ class "form-inline navbar-form" ]
-             [
-              label [ for "speed-input" ] [ text "Speed:" ]
-             , div [ class "input-group" ]
-                [
-                 span [ class "input-group-btn speed-buttons" ]
-                   [ button [ class "btn btn-default btn-decrease-speed", type' "button", onClick DecreaseSpeed ] [ text "-" ] ]
-                , input [
-                    id "speed-input"
-                   , type' "text"
-                   , class "form-control speed-input"
-                   , value (toString model.speed)
-                   , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
-                , span [ class "input-group-btn" ]
-                  [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
-                ]
-             ]
-          ]
-       , li []
-         [ a [ href "#", onClick ClearGrid ]
-             [ text "Clear Grid" ]
+     button [ class "btn btn-primary navbar-btnMp", onClick TogglePlaying ]
+         [ text ( getStartButtonText model.playing ) ]
+    , ul  [ class "nav navbar-nav navbar-right" ]
+      [
+       li []
+         [
+          Html.form [ class "form-inline navbar-form" ]
+            [
+             label [ for "speed-input" ] [ text "Speed:" ]
+            , div [ class "input-group" ]
+              [
+               span [ class "input-group-btn speed-buttons" ]
+                 [ button [ class "btn btn-default btn-decrease-speed", type' "button", onClick DecreaseSpeed ] [ text "-" ] ]
+              , input [
+                  id "speed-input"
+                 , type' "text"
+                 , class "form-control speed-input"
+                 , value (toString model.speed)
+                 , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
+              , span [ class "input-group-btn" ]
+                [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
+              ]
+            ]
          ]
-       , li []
-         [ a [ href "#", onClick TogglePlaying ]
-             [ text ( getStartButtonText model.playing ) ]
-         ]
-       ]
+      , li []
+        [ a [ href "#", onClick ClearGrid ]
+            [ text "Clear Grid" ]
+        ]
+      ]
     ]
   ]
 mainView : Model -> Html Msg

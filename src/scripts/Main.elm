@@ -6,6 +6,7 @@ import Array exposing (..)
 import String exposing (toInt)
 import Json.Decode exposing (..)
 import Time exposing (Time, second)
+import Random exposing (Generator, map)
 
 main : Program Never
 main =
@@ -116,6 +117,15 @@ getNewCellState grid position =
     else
       Dead
 
+getRandomCellState : Generator CellState
+getRandomCellState =
+    Random.map ( \b -> if b then Alive else Dead ) Random.bool
+
+getRandomGrid : Int -> Int -> Generator Grid
+getRandomGrid rows cols =
+  let rowGenerator = Random.map Array.fromList ( Random.list cols getRandomCellState ) in
+  Random.map Array.fromList ( Random.list rows rowGenerator )
+
 updateCell : Grid -> Position -> Grid
 updateCell grid position =
   setCell grid position (getNewCellState grid position)
@@ -139,6 +149,18 @@ updateGrid grid =
     )
     grid
 
+randomizeGrid : Grid -> Grid
+randomizeGrid grid =
+  Array.map
+    (\row ->
+       Array.map
+       (\cell ->
+          Alive
+       )
+       row
+    )
+  grid
+
 getStartButtonText : Bool -> String
 getStartButtonText isPlaying =
   case isPlaying of
@@ -160,6 +182,8 @@ type Msg
     | SetCell Int Int CellState
     | SetEnteredCell Int Int
     | ClearGrid
+    | SetGrid Grid
+    | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
     | ToggleResetBox
@@ -219,14 +243,15 @@ update msg model =
 
     ClearGrid ->
       let
-        rows =
-          Array.length model.grid
-
-        cols =
-          case Array.get 0 model.grid of
-              Nothing -> 0
-              Just row -> Array.length row in
+        rows = getRowNum model.grid
+        cols = getColNum model.grid in
       ( { model | grid = createGrid rows cols }, Cmd.none )
+
+    SetGrid grid->
+      ( { model | grid = grid }, Cmd.none )
+
+    RandomizeGrid ->
+      ( model, Random.generate SetGrid ( getRandomGrid ( getRowNum model.grid ) ( getColNum model.grid ) ) )
 
     DraggingOn row col ->
       let
@@ -278,40 +303,45 @@ resetBox model =
     , input [ class "reset col input", cols ] []
     ]
 
+speedChanger : Model -> Html Msg
+speedChanger model =
+   Html.form [ class "form-inline navbar-form" ]
+     [
+      label [ for "speed-input" ] [ text "Speed:" ]
+     , div [ class "input-group" ]
+       [
+        span [ class "input-group-btn speed-buttons" ]
+          [ button [ class "btn btn-default btn-decrease-speed", type' "button", onClick DecreaseSpeed ] [ text "-" ] ]
+       , input [
+           id "speed-input"
+          , type' "text"
+          , class "form-control speed-input"
+          , Html.Attributes.value (toString model.speed)
+          , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
+       , span [ class "input-group-btn" ]
+         [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
+       ]
+     ]
+
 navBar : Model -> Html Msg
 navBar model =
   div [ class "container" ]
-  [
-   div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ]
+    [
+     div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ]
   , div [ class "collapse navbar-collapse" ]
     [
      button [ class "btn btn-primary navbar-btn", onClick TogglePlaying ]
          [ text ( getStartButtonText model.playing ) ]
     , ul  [ class "nav navbar-nav navbar-right" ]
       [
-       li []
-         [
-          Html.form [ class "form-inline navbar-form" ]
-            [
-             label [ for "speed-input" ] [ text "Speed:" ]
-            , div [ class "input-group" ]
-              [
-               span [ class "input-group-btn speed-buttons" ]
-                 [ button [ class "btn btn-default btn-decrease-speed", type' "button", onClick DecreaseSpeed ] [ text "-" ] ]
-              , input [
-                  id "speed-input"
-                 , type' "text"
-                 , class "form-control speed-input"
-                 , Html.Attributes.value (toString model.speed)
-                 , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
-              , span [ class "input-group-btn" ]
-                [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
-              ]
-            ]
-         ]
+       li [] [ speedChanger model ]
       , li []
-        [ a [ href "#", onClick ToggleResetBox ]
-            [ text "Empy Grid" ]
+        [ a [ href "#", onClick ClearGrid ]
+            [ text "Clear" ]
+        ]
+      , li []
+        [ a [ href "#", onClick RandomizeGrid ]
+            [ text "Randomize" ]
         ]
       ]
     ]

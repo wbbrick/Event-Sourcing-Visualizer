@@ -51,17 +51,21 @@ type alias Position =
   , col : Int
   }
 
-type alias Grid = Array (Array CellState)
+type alias Grid = Array ( Array CellState )
 
 createGrid : Int -> Int -> Grid
 createGrid width height =
-  Array.initialize height (\_ -> Array.initialize width (\_ -> Dead ) )
+  Array.initialize height ( \_ -> Array.initialize width ( \_ -> Dead ) )
 
 getCellState : Grid -> Position -> CellState
 getCellState grid {row, col} =
-  case Maybe.andThen (Array.get row grid) (Array.get col) of
-      Just val -> val
-      Nothing -> Dead
+  Maybe.withDefault Dead ( Array.get col ( Maybe.withDefault Array.empty ( Array.get row grid ) ) )
+
+getColNum : Grid -> Int
+getColNum grid = Array.length ( Maybe.withDefault Array.empty ( Array.get 0 grid ) )
+
+getRowNum : Grid -> Int
+getRowNum grid = Array.length grid
 
 getNeighborPositions : Position -> List Position
 getNeighborPositions {row, col} =
@@ -89,11 +93,10 @@ getTotalLivingNeighbors grid position =
 
 setCell : Grid -> Position -> CellState -> Grid
 setCell grid {row, col} cellState =
-  let maybeRowArr = Array.get row grid in
-  case maybeRowArr of
-      Nothing -> createGrid 0 0
+  let maybeRow = Array.get row grid in
+  case maybeRow of
+      Nothing -> grid
       Just rowArr -> Array.set row (Array.set col cellState rowArr) grid
-
 
 getNewCellState : Grid -> Position -> CellState
 getNewCellState grid position =
@@ -266,9 +269,8 @@ resetBox model =
   let visibility = case model.resetBoxVisible of
                      True -> "visible"
                      False -> "hidden"
-      firstRow = ( Maybe.withDefault (Array.initialize 0 (\x -> Dead) ) ( Array.get 0 model.grid ) )
-      rows = Html.Attributes.value ( toString ( Array.length model.grid ) )
-      cols = Html.Attributes.value ( toString ( Array.length firstRow ) ) in
+      rows = Html.Attributes.value ( toString ( getRowNum model.grid ) )
+      cols = Html.Attributes.value ( toString ( getColNum model.grid ) ) in
   div [ class ( "well reset-box " ++ visibility ) ]
     [
      input [ class "reset row input", rows ] []

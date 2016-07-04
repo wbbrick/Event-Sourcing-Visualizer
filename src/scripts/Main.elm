@@ -25,9 +25,9 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
-    , sizeBoxCols : Int
-    , sizeBoxRows : Int
-    , sizeBoxVisible : Bool
+    , resizeBoxCols : Int
+    , resizeBoxRows : Int
+    , resizeBoxVisible : Bool
     , dragging : Bool
     , dragState : CellState
     }
@@ -40,9 +40,9 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
-   , sizeBoxCols = 20
-   , sizeBoxRows = 20
-   , sizeBoxVisible = False
+   , resizeBoxCols = 20
+   , resizeBoxRows = 20
+   , resizeBoxVisible = False
    , dragging = False
    , dragState = Alive
    }
@@ -190,9 +190,9 @@ type Msg
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
-    | ToggleSizeBox
-    | UpdateSizeBoxRows Int
-    | UpdateSizeBoxCols Int
+    | ToggleResizeBox
+    | UpdateResizeBoxRows Int
+    | UpdateResizeBoxCols Int
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -266,14 +266,14 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
-    ToggleSizeBox ->
-      ( { model | sizeBoxVisible = not model.sizeBoxVisible }, Cmd.none )
+    ToggleResizeBox ->
+      ( { model | resizeBoxVisible = not model.resizeBoxVisible }, Cmd.none )
 
-    UpdateSizeBoxCols cols ->
-      ( { model | sizeBoxCols = cols }, Cmd.none )
+    UpdateResizeBoxCols cols ->
+      ( { model | resizeBoxCols = cols }, Cmd.none )
 
-    UpdateSizeBoxRows rows ->
-      ( { model | sizeBoxRows = rows }, Cmd.none )
+    UpdateResizeBoxRows rows ->
+      ( { model | resizeBoxRows = rows }, Cmd.none )
 
 
 -- VIEW
@@ -298,19 +298,19 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
-sizeBoxView : Model -> Html Msg
-sizeBoxView model =
+resizeBoxView : Model -> Html Msg
+resizeBoxView model =
   let
-    visibility = if model.sizeBoxVisible then "fade-in" else "fade-out"
+    visibility = if model.resizeBoxVisible then "fade-in" else "fade-out"
     inputHandler = (\msg num -> toInt num |> Result.toMaybe |> Maybe.withDefault 0 |> msg )
-    rows = Html.Attributes.value ( toString model.sizeBoxRows )
-    cols = Html.Attributes.value ( toString model.sizeBoxCols )
+    rows = Html.Attributes.value ( toString model.resizeBoxRows )
+    cols = Html.Attributes.value ( toString model.resizeBoxCols )
   in
   Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ) ]
     [
-     input [ class "reset row input", rows, onInput ( inputHandler UpdateSizeBoxRows ) ] []
+     input [ class "reset row input", rows, onInput ( inputHandler UpdateResizeBoxRows ) ] []
     , text "x"
-    , input [ class "reset col input", cols, onInput ( inputHandler UpdateSizeBoxCols ) ] []
+    , input [ class "reset col input", cols, onInput ( inputHandler UpdateResizeBoxCols ) ] []
     , button [ class "btn btn-tiny btn-success" ]
       [
        span [ class "glyphicon glypicon-ok", property "aria-hidden" ( Encode.string "true" ) ] []
@@ -355,8 +355,8 @@ navBar model =
         ]
       , li [ class "size-switcher" ]
         [
-         ( sizeBoxView model )
-         , a [ href "#", onClick ToggleSizeBox, class ( "size-link " ++ if model.sizeBoxVisible then "fade-out" else "fade-in" ) ]
+         ( resizeBoxView model )
+         , a [ href "#", onClick ToggleResizeBox, class ( "size-link " ++ if model.resizeBoxVisible then "fade-out" else "fade-in" ) ]
            [ text "New Grid" ]
 
         ]

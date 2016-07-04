@@ -185,12 +185,12 @@ type Msg
     | ToggleCell Int Int
     | SetCell Int Int CellState
     | SetEnteredCell Int Int
-    | NewGrid Int Int
     | SetGrid Grid
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
-    | ToggleResizeBox
+    | ShowResizeBox
+    | HideResizeBox
     | UpdateResizeBoxRows Int
     | UpdateResizeBoxCols Int
 
@@ -247,9 +247,6 @@ update msg model =
           setCell model.grid { row = row, col = col } newState in
       ( { model | grid = newGrid }, Cmd.none )
 
-    NewGrid rows cols->
-      ( { model | grid = createGrid rows cols }, Cmd.none )
-
     SetGrid grid->
       ( { model | grid = grid }, Cmd.none )
 
@@ -266,15 +263,17 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
-    ToggleResizeBox ->
-      ( { model | resizeBoxVisible = not model.resizeBoxVisible }, Cmd.none )
+    ShowResizeBox ->
+      ( { model | resizeBoxVisible = True }, Cmd.none )
+
+    HideResizeBox ->
+      ( { model | resizeBoxVisible = False }, Cmd.none )
 
     UpdateResizeBoxCols cols ->
       ( { model | resizeBoxCols = cols }, Cmd.none )
 
     UpdateResizeBoxRows rows ->
       ( { model | resizeBoxRows = rows }, Cmd.none )
-
 
 -- VIEW
 
@@ -305,16 +304,16 @@ resizeBoxView model =
     inputHandler = (\msg num -> toInt num |> Result.toMaybe |> Maybe.withDefault 0 |> msg )
     rows = Html.Attributes.value ( toString model.resizeBoxRows )
     cols = Html.Attributes.value ( toString model.resizeBoxCols )
+    cancel = onClick HideResizeBox
+    submit = onClick ( SetGrid ( createGrid model.resizeBoxRows model.resizeBoxCols ) )
   in
   Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ) ]
     [
      input [ class "reset row input", rows, onInput ( inputHandler UpdateResizeBoxRows ) ] []
     , text "x"
     , input [ class "reset col input", cols, onInput ( inputHandler UpdateResizeBoxCols ) ] []
-    , button [ class "btn btn-tiny btn-success" ]
-      [
-       span [ class "glyphicon glyphicon-ok", property "aria-hidden" ( Encode.string "true" ) ] []
-      ]
+    ,  span [ submit, class "glyphicon glyphicon-ok submit", property "aria-hidden" ( Encode.string "true" ) ] []
+    ,  span [ cancel, class "glyphicon glyphicon-remove cancel", property "aria-hidden" ( Encode.string "true" ) ] []
     ]
 
 speedChanger : Model -> Html Msg
@@ -322,18 +321,19 @@ speedChanger model =
    Html.form [ class "form-inline navbar-form" ]
      [
       label [ for "speed-input" ] [ text "Speed:" ]
-     , div [ class "input-group" ]
+     , div [ class "input-group spinner" ]
        [
-        span [ class "input-group-btn speed-buttons" ]
-          [ button [ class "btn btn-default btn-decrease-speed", type' "button", onClick DecreaseSpeed ] [ text "-" ] ]
-       , input [
+        input [
            id "speed-input"
           , type' "text"
-          , class "form-control speed-input"
+          , class "form-control speed-input pull-right"
           , Html.Attributes.value (toString model.speed)
           , onInput (\speed -> toInt speed |> Result.toMaybe |> Maybe.withDefault 0 |> ChangeSpeed ) ] []
-       , span [ class "input-group-btn" ]
-         [ button [ class "btn btn-default btn-increase-speed", type' "button", onClick IncreaseSpeed ] [ text "+" ] ]
+       , div [ class "input-group-btn-vertical"]
+         [
+          button [ class "btn btn-default", type' "button", onClick IncreaseSpeed ] [ span [] [ text "+" ] ]
+         , button [ class "btn btn-default", type' "button", onClick DecreaseSpeed ] [ span [] [ text "-" ] ]
+         ]
        ]
      ]
 
@@ -356,7 +356,7 @@ navBar model =
       , li [ class "size-switcher" ]
         [
          ( resizeBoxView model )
-         , a [ href "#", onClick ToggleResizeBox, class ( "size-link " ++ if model.resizeBoxVisible then "fade-out" else "fade-in" ) ]
+         , a [ href "#", onClick ShowResizeBox, class ( "size-link " ++ if model.resizeBoxVisible then "fade-out" else "fade-in" ) ]
            [ text "New Grid" ]
 
         ]

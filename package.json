@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "setup-dist-dir": "mkdirp dist/scripts dist/styles dist/assets/fonts",
-    "copy-vendor-assets": "cpx node_modules/bootstrap/dist/fonts/* dist/assets/fonts",
+    "setup-dist-dir": "mkdirp dist/scripts dist/styles dist/fonts",
+    "copy-vendor-assets": "cpx node_modules/bootstrap/dist/fonts/* dist/fonts",
     "copy-assets": "cpx src/assets/**/* dist",
     "build-less": "lessc src/styles/main.less > dist/styles/main.css",
     "build-elm": "elm-make src/scripts/Main.elm --output dist/scripts/main.js",

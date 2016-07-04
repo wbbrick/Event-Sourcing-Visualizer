@@ -313,7 +313,7 @@ resizeBoxView model =
     , input [ class "reset col input", cols, onInput ( inputHandler UpdateResizeBoxCols ) ] []
     , button [ class "btn btn-tiny btn-success" ]
       [
-       span [ class "glyphicon glypicon-ok", property "aria-hidden" ( Encode.string "true" ) ] []
+       span [ class "glyphicon glyphicon-ok", property "aria-hidden" ( Encode.string "true" ) ] []
       ]
     ]
 

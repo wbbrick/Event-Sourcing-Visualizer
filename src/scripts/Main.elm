@@ -25,7 +25,7 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
-    , resetBoxVisible : Bool
+    , sizeBoxVisible : Bool
     , dragging : Bool
     , dragState : CellState
     }
@@ -38,7 +38,7 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
-   , resetBoxVisible = False
+   , sizeBoxVisible = False
    , dragging = False
    , dragState = Alive
    }
@@ -186,7 +186,7 @@ type Msg
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
-    | ToggleResetBox
+    | ToggleSizeBox
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -263,8 +263,8 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
-    ToggleResetBox ->
-      ( { model | resetBoxVisible = not model.resetBoxVisible }, Cmd.none )
+    ToggleSizeBox ->
+      ( { model | sizeBoxVisible = not model.sizeBoxVisible }, Cmd.none )
 
 
 -- VIEW
@@ -289,14 +289,13 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
-resetBox : Model -> Html Msg
-resetBox model =
-  let visibility = case model.resetBoxVisible of
-                     True -> "visible"
-                     False -> "hidden"
+sizeBox : Model -> Html Msg
+sizeBox model =
+  let visibility =
+      if model.sizeBoxVisible then "fade-in" else "fade-out"
       rows = Html.Attributes.value ( toString ( getRowNum model.grid ) )
       cols = Html.Attributes.value ( toString ( getColNum model.grid ) ) in
-  div [ class ( "well reset-box " ++ visibility ) ]
+  Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ), onClick ToggleSizeBox ]
     [
      input [ class "reset row input", rows ] []
     , text "x"
@@ -343,6 +342,13 @@ navBar model =
         [ a [ href "#", onClick RandomizeGrid ]
             [ text "Randomize" ]
         ]
+      , li [ class "size-switcher" ]
+        [
+         ( sizeBox model )
+         , a [ href "#", onClick ToggleSizeBox, class ( "size-link " ++ if model.sizeBoxVisible then "fade-out" else "fade-in" ) ]
+           [ text "Grid Size" ]
+
+        ]
       ]
     ]
   ]
@@ -352,7 +358,7 @@ mainView model =
   div []
     [
      nav [ class "navbar navbar-default" ] [ navBar model ]
-    , div [ class "container main-view" ] [ gridView model.grid, resetBox model ]
+    , div [ class "container main-view" ] [ gridView model.grid ]
     ]
 
 

@@ -6,10 +6,12 @@ import Array exposing (..)
 import String exposing (toInt)
 import Json.Decode exposing (..)
 import Time exposing (Time, second)
-import Random exposing (Generator, map)
-import Debug exposing (log)
+import Random exposing (generate)
 
+import Types exposing (..)
+import GridOperations exposing (..)
 import ResizeBox exposing (..)
+import PatternChooser exposing (..)
 
 main : Program Never
 main =
@@ -28,6 +30,7 @@ type alias Model =
     , speed : Int
     , time : Float
     , resizeBoxModel : ResizeBox.Model
+    , patternChooserModel : PatternChooser.Model
     , dragging : Bool
     , dragState : CellState
     }
@@ -41,133 +44,12 @@ init width height =
    , speed = 5
    , time = 0.0
    , resizeBoxModel = ResizeBox.init
+   , patternChooserModel = PatternChooser.init
    , dragging = False
    , dragState = Alive
    }
   , Cmd.none
   )
-
-type CellState = Alive | Dead
-
-type alias Position =
-  { row : Int
-  , col : Int
-  }
-
-type alias Grid = Array ( Array CellState )
-
-createGrid : Int -> Int -> Grid
-createGrid width height =
-  Array.initialize height ( \_ -> Array.initialize width ( \_ -> Dead ) )
-
-getCellState : Grid -> Position -> CellState
-getCellState grid {row, col} =
-  Maybe.withDefault Dead ( Array.get col ( Maybe.withDefault Array.empty ( Array.get row grid ) ) )
-
-getColNum : Grid -> Int
-getColNum grid = Array.length ( Maybe.withDefault Array.empty ( Array.get 0 grid ) )
-
-getRowNum : Grid -> Int
-getRowNum grid = Array.length grid
-
-getNeighborPositions : Position -> List Position
-getNeighborPositions {row, col} =
-  let filter = List.filter (\posn -> posn.row /= row || posn.col /= col) in
-  filter
-  (
-   List.foldl
-     (\posn posns -> List.append
-        ( (\x -> List.map (\y -> {row = x, col = y} ) [col-1 .. col+1] ) posn)
-        posns
-     )
-     []
-     [row-1 .. row+1]
-  )
-
-
-getNeighborValues : Grid -> Position -> List CellState
-getNeighborValues grid position =
-  List.map (getCellState grid) (getNeighborPositions position )
-
-getTotalLivingNeighbors : Grid -> Position -> Int
-getTotalLivingNeighbors grid position =
-  List.length
-    (List.filter (\cell -> cell == Alive) (getNeighborValues grid position))
-
-setCell : Grid -> Position -> CellState -> Grid
-setCell grid {row, col} cellState =
-  let maybeRow = Array.get row grid in
-  case maybeRow of
-      Nothing -> grid
-      Just rowArr -> Array.set row (Array.set col cellState rowArr) grid
-
-getNewCellState : Grid -> Position -> CellState
-getNewCellState grid position =
-  let
-    livingNeighbors =
-      getTotalLivingNeighbors grid position
-    currentState =
-      getCellState grid position
-  in
-    -- maintain status quo for cells with 2 living neighbors
-    if livingNeighbors == 2 then
-      currentState
-    -- bring cells with 3 living neighbors to life
-    else if livingNeighbors == 3 then
-      Alive
-    -- kill under- and over-populated cells
-    else
-      Dead
-
-getRandomCellState : Generator CellState
-getRandomCellState =
-    Random.map ( \b -> if b then Alive else Dead ) Random.bool
-
-getRandomGrid : Int -> Int -> Generator Grid
-getRandomGrid rows cols =
-  let rowGenerator = Random.map Array.fromList ( Random.list cols getRandomCellState ) in
-  Random.map Array.fromList ( Random.list rows rowGenerator )
-
-updateCell : Grid -> Position -> Grid
-updateCell grid position =
-  setCell grid position (getNewCellState grid position)
-
-toggleCell : Grid -> Position -> Grid
-toggleCell grid position =
-  let currentCellState = getCellState grid position in
-  case currentCellState of
-      Alive -> setCell grid position Dead
-      Dead -> setCell grid position Alive
-
-updateGrid : Grid -> Grid
-updateGrid grid =
-  Array.indexedMap
-    (\rowNum row ->
-       Array.indexedMap
-       (\colNum cell ->
-          getNewCellState grid {row = rowNum, col = colNum}
-       )
-       row
-    )
-    grid
-
-randomizeGrid : Grid -> Grid
-randomizeGrid grid =
-  Array.map
-    (\row ->
-       Array.map
-       (\cell ->
-          Alive
-       )
-       row
-    )
-  grid
-
-getStartButtonText : Bool -> String
-getStartButtonText isPlaying =
-  case isPlaying of
-      True -> "Stop"
-      False -> "Start"
 
 -- UPDATE
 
@@ -187,7 +69,9 @@ type Msg
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
+    | OpenPatternChooser
     | ResizeBoxMsg ResizeBox.Msg
+    | PatternChooserMsg PatternChooser.Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -258,17 +142,36 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
+    OpenPatternChooser ->
+      let
+        pcModel = model.patternChooserModel
+        updatedPCModel = { pcModel | visible = True }
+      in
+      ( { model | patternChooserModel = updatedPCModel }, Cmd.none )
+
     ResizeBoxMsg subMsg ->
        let
          (updatedResizeBoxModel, resizeBoxCmd) = ResizeBox.update subMsg model.resizeBoxModel
          newModel = { model | resizeBoxModel = updatedResizeBoxModel }
        in
          case subMsg of
-           Submit ->
+           ResizeBox.Submit ->
              let newGrid = createGrid model.resizeBoxModel.rows model.resizeBoxModel.cols in
              ( { newModel | grid = newGrid  }, Cmd.map ResizeBoxMsg resizeBoxCmd)
            _ ->
              ( newModel, Cmd.map ResizeBoxMsg resizeBoxCmd)
+
+    PatternChooserMsg subMsg ->
+       let
+         (updatedPatternChooserModel, patternChooserCmd) = PatternChooser.update subMsg model.patternChooserModel
+         newModel = { model | patternChooserModel = updatedPatternChooserModel }
+         newGrid = Maybe.withDefault newModel.grid updatedPatternChooserModel.chosenGrid
+       in
+         case subMsg of
+           PatternChooser.Submit ->
+             ( { newModel | grid = newGrid }, Cmd.map PatternChooserMsg patternChooserCmd)
+           _ ->
+             ( newModel, Cmd.map PatternChooserMsg patternChooserCmd)
 
 
 -- VIEW
@@ -316,19 +219,30 @@ speedChanger model =
 
 navBar : Model -> Html Msg
 navBar model =
+  let startBtnText = if model.playing then "Stop" else "Start"
+      startBtnClass = if model.playing then "btn-danger" else "btn-success" in
   div [ class "container" ]
     [
      div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Game of Life" ] ]
-  , div [ class "collapse navbar-collapse" ]
+    , div [ class "collapse navbar-collapse" ]
     [
-     button [ class "btn btn-primary navbar-btn", onClick TogglePlaying ]
-         [ text ( getStartButtonText model.playing ) ]
-    , ul  [ class "nav navbar-nav navbar-right" ]
+     button [ class ( "btn navbar-btn " ++ startBtnClass ), onClick TogglePlaying ]
+       [
+        text startBtnText
+       ]
+    , button [ class ( "btn navbar-btn open-pattern-chooser" ), onClick OpenPatternChooser ]
+       [
+        text "Patterns"
+       ]
+    , ul [ class "nav navbar-nav navbar-right" ]
       [
        App.map ResizeBoxMsg (ResizeBox.view model.resizeBoxModel )
       , li []
-        [ a [ href "#", onClick RandomizeGrid ]
-            [ text "Randomize" ]
+        [
+         a [ href "#", onClick RandomizeGrid ]
+           [
+            text "Randomize"
+           ]
         ]
       , li [] [ speedChanger model ]
       ]
@@ -337,10 +251,11 @@ navBar model =
 
 mainView : Model -> Html Msg
 mainView model =
-  div []
+  div [ class ( if model.patternChooserModel.visible then "modal-open" else "" ) ]
     [
      nav [ class "navbar navbar-default" ] [ navBar model ]
     , div [ class "container main-view" ] [ gridView model.grid ]
+    , App.map PatternChooserMsg ( PatternChooser.view model.patternChooserModel )
     ]
 
 

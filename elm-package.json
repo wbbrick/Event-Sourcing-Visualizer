@@ -6,7 +6,9 @@
     "source-directories": [
       ".",
       "src/scripts",
-      "src/scripts/components"
+      "src/scripts/components",
+      "src/scripts/types",
+      "src/scripts/patterns"
     ],
     "exposed-modules": [],
     "dependencies": {

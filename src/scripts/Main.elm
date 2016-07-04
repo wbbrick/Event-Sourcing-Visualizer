@@ -348,18 +348,18 @@ navBar model =
          [ text ( getStartButtonText model.playing ) ]
     , ul  [ class "nav navbar-nav navbar-right" ]
       [
-       li [] [ speedChanger model ]
-      , li []
-        [ a [ href "#", onClick RandomizeGrid ]
-            [ text "Randomize" ]
-        ]
-      , li [ class "size-switcher" ]
+       li [ class "size-switcher" ]
         [
          ( resizeBoxView model )
          , a [ href "#", onClick ShowResizeBox, class ( "size-link " ++ if model.resizeBoxVisible then "fade-out" else "fade-in" ) ]
            [ text "New Grid" ]
 
         ]
+      , li []
+        [ a [ href "#", onClick RandomizeGrid ]
+            [ text "Randomize" ]
+        ]
+      , li [] [ speedChanger model ]
       ]
     ]
   ]

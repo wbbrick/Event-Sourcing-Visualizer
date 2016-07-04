@@ -5,9 +5,11 @@ import Html.Events exposing (..)
 import Array exposing (..)
 import String exposing (toInt)
 import Json.Decode exposing (..)
-import Json.Encode as Encode
 import Time exposing (Time, second)
 import Random exposing (Generator, map)
+import Debug exposing (log)
+
+import ResizeBox exposing (..)
 
 main : Program Never
 main =
@@ -25,9 +27,7 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
-    , resizeBoxCols : Int
-    , resizeBoxRows : Int
-    , resizeBoxVisible : Bool
+    , resizeBoxModel : ResizeBox.Model
     , dragging : Bool
     , dragState : CellState
     }
@@ -40,9 +40,7 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
-   , resizeBoxCols = 20
-   , resizeBoxRows = 20
-   , resizeBoxVisible = False
+   , resizeBoxModel = ResizeBox.init
    , dragging = False
    , dragState = Alive
    }
@@ -189,10 +187,7 @@ type Msg
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
-    | ShowResizeBox
-    | HideResizeBox
-    | UpdateResizeBoxRows Int
-    | UpdateResizeBoxCols Int
+    | ResizeBoxMsg ResizeBox.Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -263,17 +258,18 @@ update msg model =
     DraggingOff ->
       ( { model | dragging = False }, Cmd.none )
 
-    ShowResizeBox ->
-      ( { model | resizeBoxVisible = True }, Cmd.none )
+    ResizeBoxMsg subMsg ->
+       let
+         (updatedResizeBoxModel, resizeBoxCmd) = ResizeBox.update subMsg model.resizeBoxModel
+         newModel = { model | resizeBoxModel = updatedResizeBoxModel }
+       in
+         case subMsg of
+           Submit ->
+             let newGrid = createGrid model.resizeBoxModel.rows model.resizeBoxModel.cols in
+             ( { newModel | grid = newGrid  }, Cmd.map ResizeBoxMsg resizeBoxCmd)
+           _ ->
+             ( newModel, Cmd.map ResizeBoxMsg resizeBoxCmd)
 
-    HideResizeBox ->
-      ( { model | resizeBoxVisible = False }, Cmd.none )
-
-    UpdateResizeBoxCols cols ->
-      ( { model | resizeBoxCols = cols }, Cmd.none )
-
-    UpdateResizeBoxRows rows ->
-      ( { model | resizeBoxRows = rows }, Cmd.none )
 
 -- VIEW
 
@@ -296,25 +292,6 @@ rowView rowNum row =
 gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
-
-resizeBoxView : Model -> Html Msg
-resizeBoxView model =
-  let
-    visibility = if model.resizeBoxVisible then "fade-in" else "fade-out"
-    inputHandler = (\msg num -> toInt num |> Result.toMaybe |> Maybe.withDefault 0 |> msg )
-    rows = Html.Attributes.value ( toString model.resizeBoxRows )
-    cols = Html.Attributes.value ( toString model.resizeBoxCols )
-    cancel = onClick HideResizeBox
-    submit = onClick ( SetGrid ( createGrid model.resizeBoxRows model.resizeBoxCols ) )
-  in
-  Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ) ]
-    [
-     input [ class "reset row input", rows, onInput ( inputHandler UpdateResizeBoxRows ) ] []
-    , text "x"
-    , input [ class "reset col input", cols, onInput ( inputHandler UpdateResizeBoxCols ) ] []
-    ,  span [ submit, class "glyphicon glyphicon-ok submit", property "aria-hidden" ( Encode.string "true" ) ] []
-    ,  span [ cancel, class "glyphicon glyphicon-remove cancel", property "aria-hidden" ( Encode.string "true" ) ] []
-    ]
 
 speedChanger : Model -> Html Msg
 speedChanger model =
@@ -348,13 +325,7 @@ navBar model =
          [ text ( getStartButtonText model.playing ) ]
     , ul  [ class "nav navbar-nav navbar-right" ]
       [
-       li [ class "size-switcher" ]
-        [
-         ( resizeBoxView model )
-         , a [ href "#", onClick ShowResizeBox, class ( "size-link " ++ if model.resizeBoxVisible then "fade-out" else "fade-in" ) ]
-           [ text "New Grid" ]
-
-        ]
+       App.map ResizeBoxMsg (ResizeBox.view model.resizeBoxModel )
       , li []
         [ a [ href "#", onClick RandomizeGrid ]
             [ text "Randomize" ]

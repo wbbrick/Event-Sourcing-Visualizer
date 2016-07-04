@@ -12,7 +12,7 @@
     "build-elm": "elm-make src/scripts/Main.elm --output dist/scripts/main.js",
     "watch-less": "chokidar src/styles/**/* -c 'npm run build-less'",
     "watch-assets": "npm run copy-assets -- -w",
-    "watch-elm": "chokidar src/scripts/**/* -c 'npm run build-elm'",
+    "watch-elm": "chokidar 'src/**/*.elm' -c 'npm run build-elm'",
     "browser-sync": "browser-sync start --server ./dist --files ./dist --no-notify",
     "prebuild": "npm-run-all clean setup-dist-dir",
     "build": "npm-run-all --parallel build-less copy-assets build-elm copy-vendor-assets",

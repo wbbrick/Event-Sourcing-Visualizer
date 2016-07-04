@@ -5,6 +5,7 @@ import Html.Events exposing (..)
 import Array exposing (..)
 import String exposing (toInt)
 import Json.Decode exposing (..)
+import Json.Encode as Encode
 import Time exposing (Time, second)
 import Random exposing (Generator, map)
 
@@ -17,7 +18,6 @@ main =
     , subscriptions = subscriptions
     }
 
-
 -- Model
 
 type alias Model =
@@ -25,6 +25,8 @@ type alias Model =
     , playing : Bool
     , speed : Int
     , time : Float
+    , sizeBoxCols : Int
+    , sizeBoxRows : Int
     , sizeBoxVisible : Bool
     , dragging : Bool
     , dragState : CellState
@@ -38,6 +40,8 @@ init width height =
    , playing = False
    , speed = 5
    , time = 0.0
+   , sizeBoxCols = 20
+   , sizeBoxRows = 20
    , sizeBoxVisible = False
    , dragging = False
    , dragState = Alive
@@ -181,12 +185,14 @@ type Msg
     | ToggleCell Int Int
     | SetCell Int Int CellState
     | SetEnteredCell Int Int
-    | ClearGrid
+    | NewGrid Int Int
     | SetGrid Grid
     | RandomizeGrid
     | DraggingOff
     | DraggingOn Int Int
     | ToggleSizeBox
+    | UpdateSizeBoxRows Int
+    | UpdateSizeBoxCols Int
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -241,10 +247,7 @@ update msg model =
           setCell model.grid { row = row, col = col } newState in
       ( { model | grid = newGrid }, Cmd.none )
 
-    ClearGrid ->
-      let
-        rows = getRowNum model.grid
-        cols = getColNum model.grid in
+    NewGrid rows cols->
       ( { model | grid = createGrid rows cols }, Cmd.none )
 
     SetGrid grid->
@@ -265,6 +268,12 @@ update msg model =
 
     ToggleSizeBox ->
       ( { model | sizeBoxVisible = not model.sizeBoxVisible }, Cmd.none )
+
+    UpdateSizeBoxCols cols ->
+      ( { model | sizeBoxCols = cols }, Cmd.none )
+
+    UpdateSizeBoxRows rows ->
+      ( { model | sizeBoxRows = rows }, Cmd.none )
 
 
 -- VIEW
@@ -289,17 +298,23 @@ gridView : Array (Array CellState) -> Html Msg
 gridView grid =
   table [ class "grid-table noselect" ] ( Array.toList ( Array.indexedMap rowView grid ) )
 
-sizeBox : Model -> Html Msg
-sizeBox model =
-  let visibility =
-      if model.sizeBoxVisible then "fade-in" else "fade-out"
-      rows = Html.Attributes.value ( toString ( getRowNum model.grid ) )
-      cols = Html.Attributes.value ( toString ( getColNum model.grid ) ) in
-  Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ), onClick ToggleSizeBox ]
+sizeBoxView : Model -> Html Msg
+sizeBoxView model =
+  let
+    visibility = if model.sizeBoxVisible then "fade-in" else "fade-out"
+    inputHandler = (\msg num -> toInt num |> Result.toMaybe |> Maybe.withDefault 0 |> msg )
+    rows = Html.Attributes.value ( toString model.sizeBoxRows )
+    cols = Html.Attributes.value ( toString model.sizeBoxCols )
+  in
+  Html.form [ class ( "form-inline navbar-form size-box " ++ visibility ) ]
     [
-     input [ class "reset row input", rows ] []
+     input [ class "reset row input", rows, onInput ( inputHandler UpdateSizeBoxRows ) ] []
     , text "x"
-    , input [ class "reset col input", cols ] []
+    , input [ class "reset col input", cols, onInput ( inputHandler UpdateSizeBoxCols ) ] []
+    , button [ class "btn btn-tiny btn-success" ]
+      [
+       span [ class "glyphicon glypicon-ok", property "aria-hidden" ( Encode.string "true" ) ] []
+      ]
     ]
 
 speedChanger : Model -> Html Msg
@@ -335,18 +350,14 @@ navBar model =
       [
        li [] [ speedChanger model ]
       , li []
-        [ a [ href "#", onClick ClearGrid ]
-            [ text "Clear" ]
-        ]
-      , li []
         [ a [ href "#", onClick RandomizeGrid ]
             [ text "Randomize" ]
         ]
       , li [ class "size-switcher" ]
         [
-         ( sizeBox model )
+         ( sizeBoxView model )
          , a [ href "#", onClick ToggleSizeBox, class ( "size-link " ++ if model.sizeBoxVisible then "fade-out" else "fade-in" ) ]
-           [ text "Grid Size" ]
+           [ text "New Grid" ]
 
         ]
       ]

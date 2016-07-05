@@ -11,3 +11,37 @@
     cursor: pointer;
   }
 }
+
+.pattern-list {
+  list-style-type: none;
+  padding-left: 0;
+  li {
+    width: 100%;
+    height: auto;
+  }
+  .pattern-name {
+    font-size: 1.5em;
+    width: auto;
+  }
+  .pattern-thumbnail {
+    float: left;
+    height: 30px;
+    width: 30px;
+  }
+  .thumbnail-row {
+    display: table;
+    min-height: 1px;
+    min-width: 1px;
+    .alive {
+      background-color: black;
+    }
+    .dead {
+      background-color: white;
+    }
+  }
+  .thumbnail-cell {
+    display: table-cell;
+    min-height: 1px;
+    min-width: 1px;
+  }
+}

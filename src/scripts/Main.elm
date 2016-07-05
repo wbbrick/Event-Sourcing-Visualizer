@@ -163,15 +163,17 @@ update msg model =
 
     PatternChooserMsg subMsg ->
        let
-         (updatedPatternChooserModel, patternChooserCmd) = PatternChooser.update subMsg model.patternChooserModel
-         newModel = { model | patternChooserModel = updatedPatternChooserModel }
-         newGrid = Maybe.withDefault newModel.grid updatedPatternChooserModel.chosenGrid
+         (updatedPCModel, cmd) = PatternChooser.update subMsg model.patternChooserModel
+         newModel = { model | patternChooserModel = updatedPCModel }
+         newGrid = case updatedPCModel.chosenPattern of
+                     Nothing -> newModel.grid
+                     Just pattern -> pattern.definition
        in
          case subMsg of
            PatternChooser.Submit ->
-             ( { newModel | grid = newGrid }, Cmd.map PatternChooserMsg patternChooserCmd)
+             ( { newModel | grid = newGrid }, Cmd.map PatternChooserMsg cmd)
            _ ->
-             ( newModel, Cmd.map PatternChooserMsg patternChooserCmd)
+             ( newModel, Cmd.map PatternChooserMsg cmd)
 
 
 -- VIEW

@@ -14,15 +14,18 @@ listToGrid: List ( List CellState ) -> Grid
 listToGrid pattern =
   fromList ( List.map fromList pattern )
 
-type alias PatternList =
+type alias Pattern =
   {
-    blinker : Grid
+    name : String,
+    definition : Grid
   }
 
-patterns : PatternList
+patterns : List Pattern
 patterns =
-  {
-    blinker =
+  [
+   {
+     name = "Blinker"
+   , definition =
       listToGrid
       [
        [d,d,d,d,d]
@@ -31,4 +34,17 @@ patterns =
       ,[d,d,a,d,d]
       ,[d,d,d,d,d]
       ]
-  }
+   }
+  , {
+     name = "Boat"
+   , definition =
+      listToGrid
+      [
+       [d,d,d,d,d]
+      ,[d,a,a,d,d]
+      ,[d,a,d,a,d]
+      ,[d,d,a,d,d]
+      ,[d,d,d,d,d]
+      ]
+   }
+  ]

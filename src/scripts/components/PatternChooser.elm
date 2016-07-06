@@ -87,41 +87,54 @@ view model =
         ]
       ]
 
-thumbnailGenerator : Grid -> List ( Html Msg )
+thumbnailGenerator : Grid -> Html Msg
 thumbnailGenerator grid =
   let
     cellClass row col =
       case getCellState grid { row = row, col = col } of
         Types.Alive -> "alive"
         Types.Dead -> "dead"
+    rowWidth = "30px"
+    rowHeight = ( toString ( 30.0 / ( toFloat ( GridOperations.getRowNum grid ) ) ) ) ++ "px"
+    cellHeight = ( toString ( 30.0 / ( toFloat ( GridOperations.getRowNum grid ) ) ) ) ++ "px"
+    cellWidth = ( toString ( 30.0 / ( toFloat ( GridOperations.getColNum grid ) ) ) ) ++ "px"
   in
-  Array.toList
-    (
-     Array.indexedMap
-       (
-        \rowNum row ->
-          div [ class "thumbnail-row" ]
-          (
-           Array.toList
-             (
-              Array.indexedMap
-                (
-                 \colNum col ->
-                   span [ class ( "thumbnail-cell " ++ ( cellClass rowNum colNum ) )  ] []
-                )
-                row
-             )
-          )
-       )
-       grid
-    )
-
+    ul []
+      (
+       Array.toList
+         (
+          Array.indexedMap
+            (
+             \rowNum row ->
+               li [ class "thumbnail-row", style [( "height", rowHeight ), ( "width", rowWidth )] ]
+               [
+                ul []
+                  (
+                   Array.toList
+                     (
+                      Array.indexedMap
+                        (
+                         \colNum col ->
+                           li [
+                              class ( "thumbnail-cell " ++ ( cellClass rowNum colNum ) )
+                             , style [( "height", cellHeight ), ( "width", cellWidth )]
+                             ] []
+                        )
+                        row
+                     )
+                  )
+               ]
+            )
+            grid
+         )
+      )
+         
 patternView : Pattern -> Html Msg
 patternView pattern =
   li [ class "well pattern" ]
     [
      div [ class "pattern-thumbnail" ]
-       ( thumbnailGenerator pattern.definition )
+       [ ( thumbnailGenerator pattern.definition ) ]
     , span [ class "pattern-name" ]
       [
        text pattern.name

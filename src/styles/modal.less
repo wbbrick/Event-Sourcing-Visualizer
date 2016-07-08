@@ -15,25 +15,24 @@
 .pattern-list {
   list-style-type: none;
   padding-left: 0;
-  li {
-    width: 100%;
-    height: auto;
-  }
   .pattern-name {
     font-size: 1.5em;
     width: auto;
   }
   .pattern-thumbnail {
-    float: left;
-    height: 30px;
-    width: 30px;
+    margin: 10px 30px;
     ul {
       width: 100%;
       padding: 0px;
     }
+    .thumbnail-grid {
+      border: 1px solid black;
+      overflow: hidden;
+      height: 50px;
+      width: 50px;
+    }
   }
   .thumbnail-row {
-
     display: table;
     min-height: 1px;
     min-width: 1px;
@@ -43,6 +42,15 @@
     .dead {
       background-color: white;
     }
+  }
+  .pattern {
+    cursor: pointer;
+    display: inline-block;
+  }
+  .pattern:hover {
+    .dead {
+      background-color: #eeeeff;
+    }    
   }
   .thumbnail-cell {
     display: table-cell;

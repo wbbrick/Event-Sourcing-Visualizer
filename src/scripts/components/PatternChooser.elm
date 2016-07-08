@@ -69,8 +69,11 @@ view model =
               ]
            , div [ class "modal-body" ]
              [
-              ul [ class "pattern-list" ]
-                ( List.map patternView patterns )
+              div []
+                [
+                 ul [ class "pattern-list" ]
+                   ( List.map patternView patterns )
+                ]
              ]
            , div [ class "modal-footer" ]
              [
@@ -87,19 +90,21 @@ view model =
         ]
       ]
 
-thumbnailGenerator : Grid -> Html Msg
-thumbnailGenerator grid =
+thumbnailGenerator : Grid -> Int -> Int -> Html Msg
+thumbnailGenerator grid height width =
   let
     cellClass row col =
       case getCellState grid { row = row, col = col } of
         Types.Alive -> "alive"
         Types.Dead -> "dead"
-    rowWidth = "30px"
-    rowHeight = ( toString ( 30.0 / ( toFloat ( GridOperations.getRowNum grid ) ) ) ) ++ "px"
-    cellHeight = ( toString ( 30.0 / ( toFloat ( GridOperations.getRowNum grid ) ) ) ) ++ "px"
-    cellWidth = ( toString ( 30.0 / ( toFloat ( GridOperations.getColNum grid ) ) ) ) ++ "px"
+    totalHeight = ( toString height ) ++ "px"
+    totalWidth = ( toString width ) ++ "px"
+    rowWidth = "100%"
+    rowHeight = ( toString ( toFloat height / toFloat ( GridOperations.getRowNum grid ) ) ) ++ "px"
+    cellHeight = rowHeight
+    cellWidth = ( toString ( toFloat width / toFloat ( GridOperations.getColNum grid ) ) ) ++ "px"
   in
-    ul []
+    ul [ class "thumbnail-grid", style [ ( "height", totalHeight ), ( "width", totalWidth ) ] ]
       (
        Array.toList
          (
@@ -108,7 +113,7 @@ thumbnailGenerator grid =
              \rowNum row ->
                li [ class "thumbnail-row", style [( "height", rowHeight ), ( "width", rowWidth )] ]
                [
-                ul []
+                ul [ style [ ( "height", "100%" ), ( "width", "100%" ) ] ]
                   (
                    Array.toList
                      (
@@ -131,12 +136,11 @@ thumbnailGenerator grid =
          
 patternView : Pattern -> Html Msg
 patternView pattern =
-  li [ class "well pattern" ]
+  li [ class "pattern" ]
     [
      div [ class "pattern-thumbnail" ]
-       [ ( thumbnailGenerator pattern.definition ) ]
-    , span [ class "pattern-name" ]
-      [
-       text pattern.name
-      ]
+       [
+        span [ class "pattern-name" ] [ text pattern.name ]
+       , ( thumbnailGenerator pattern.definition 50 50 )
+       ]
     ]

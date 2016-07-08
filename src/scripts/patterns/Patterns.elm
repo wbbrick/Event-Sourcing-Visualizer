@@ -47,4 +47,17 @@ patterns =
       ,[d,d,d,d,d]
       ]
    }
+  , {
+     name = "Toad"
+   , definition =
+      listToGrid
+      [
+       [d,d,d,d,d,d]
+      ,[d,d,d,d,d,d]
+      ,[d,d,a,a,a,d]
+      ,[d,a,a,a,d,d]
+      ,[d,d,d,d,d,d]
+      ,[d,d,d,d,d,d]
+      ]
+   }
   ]

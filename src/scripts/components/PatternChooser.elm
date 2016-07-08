@@ -26,7 +26,7 @@ init =
 type Msg
     = Show
     | Hide
-    | Choose ( Maybe Pattern )
+    | Choose Pattern
     | Submit
 
 -- UPDATE
@@ -41,7 +41,7 @@ update message model =
         ( { model | visible = False }, Cmd.none )
 
       Choose pattern ->
-        ( { model | chosenPattern = pattern }, Cmd.none )
+        ( { model | chosenPattern = Just pattern }, Cmd.none )
 
       Submit ->
         ( { model | visible = False }, Cmd.none )
@@ -72,7 +72,7 @@ view model =
               div []
                 [
                  ul [ class "pattern-list" ]
-                   ( List.map patternView patterns )
+                   ( List.map (\pattern -> model.chosenPattern == Just pattern |> ( patternView pattern ) ) patterns )
                 ]
              ]
            , div [ class "modal-footer" ]
@@ -134,9 +134,12 @@ thumbnailGenerator grid height width =
          )
       )
          
-patternView : Pattern -> Html Msg
-patternView pattern =
-  li [ class "pattern" ]
+patternView : Pattern -> Bool -> Html Msg
+patternView pattern isChosen =
+  let
+    patternClass = if isChosen then " selected" else ""
+  in
+  li [ class ( "pattern" ++ patternClass ), onClick ( Choose pattern ) ]
     [
      div [ class "pattern-thumbnail" ]
        [

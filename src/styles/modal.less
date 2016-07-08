@@ -17,7 +17,8 @@
   padding-left: 0;
   .pattern-name {
     font-size: 1.5em;
-    width: auto;
+    text-align: center;
+    display: block;
   }
   .pattern-thumbnail {
     margin: 10px 30px;
@@ -30,6 +31,7 @@
       overflow: hidden;
       height: 50px;
       width: 50px;
+      margin: auto;
     }
   }
   .thumbnail-row {
@@ -50,7 +52,10 @@
   .pattern:hover {
     .dead {
       background-color: #eeeeff;
-    }    
+    }
+    .pattern-name {
+      color: #111100;
+    }
   }
   .thumbnail-cell {
     display: table-cell;

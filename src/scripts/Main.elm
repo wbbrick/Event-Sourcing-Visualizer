@@ -187,8 +187,8 @@ cellView rowNum colNum cellState =
     clickEvent = onWithOptions "click" defaultOptions (Json.Decode.succeed ( ToggleCell rowNum colNum ) )
     mouseEnterEvent = onWithOptions "mouseenter" defaultOptions (Json.Decode.succeed ( SetEnteredCell rowNum colNum ) ) in
   case cellState of
-      Alive -> td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "alive" ] [ text "o" ]
-      Dead ->  td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "dead" ] [ text "x" ]
+      Alive -> td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "alive" ] []
+      Dead ->  td [ mouseEnterEvent, clickEvent, mouseDownEvent, mouseUpEvent, class "dead" ] []
 
 rowView : Int -> (Array CellState) -> Html Msg
 rowView rowNum row =

@@ -1,7 +1,7 @@
 {
-  "name": "elm-gol",
+  "name": "elm-CSV",
   "version": "0.0.0",
-  "description": "An Elm implementation of Conway's Game of Life",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "clean": "rimraf dist",
@@ -20,9 +20,7 @@
     "start": "npm-run-all --parallel watch-less watch-assets watch-elm browser-sync"
   },
   "keywords": [
-    "elm",
-    "gol",
-    "conway"
+    "elm"
   ],
   "author": "Bryan Brick",
   "license": "ISC",

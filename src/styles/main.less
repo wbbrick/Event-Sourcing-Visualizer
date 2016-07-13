@@ -1,6 +1,10 @@
 @import (inline) "../../node_modules/bootstrap/dist/css/bootstrap.min.css";
 
-@import "./modal.less";
+@import "./todo-input.less";
+@import "./wire.less";
+@import "./logger.less";
+@import "./event-store.less";
+@import "./materialized-view.less";
 
 #app {
   width: 100%;
@@ -8,159 +12,12 @@
 }
 
 .main-view {
-  position: relative;
-}
-
-.nav {
-
-  label[for="speed-input"] {
-    margin-right: 5px;
-  }
-  #speed-input {
-    width: 50px;
-    text-align: center;
-  }
-  label {
-    font-weight: normal;
-  }
-}
-
-.grid-table {
-  margin-left: auto;
-  margin-right: auto;
-  font-size: 24pt;
-
-  tr {
-    height: 40px;
-    td {
-      width: 40px;
-      cursor: pointer;
+  > div {
+    width: 100%;
+    height: 50%;
+    > div {
       border: 1px solid black;
-      margin: auto;
-      vertical-align: middle;
-      text-align: center;
+      height: 100%;
     }
   }
-  .alive {
-    color: #00aa00;
-    background-color: #ccffcc;
-  }
-  .dead {
-    color: #aa0000;
-    background-color: #ffcccc;
-  }
-}
-
-.size-switcher {
-  width: 170px;
-}
-
-.size-link {
-  position: absolute;
-  text-align: center;
-}
-
-.size-box {
-  position: absolute;
-  text-align: center;
-  input {
-    margin: 5px;
-    width: 32px;
-    text-align: center;
-  }
-  .cancel:hover {
-    color: red;
-  }
-  .submit:hover {
-    color: green;
-  }
-  .glyphicon {
-    cursor: pointer;
-    margin: 2px;
-  }
-}
-
-.size-link.fade-in {
-  -webkit-transform-origin: top center;
-  transform-origin: top center;
-  -webkit-transform: rotateX( 0deg ) translateY( 0 ) scaleY(1);
-  transform: rotateX( 0deg ) translateY( 0 ) scaleY( 1 );
-  transition: 1s;
-}
-.size-box.fade-in {
-  -webkit-transform-origin: bottom center;
-  transform-origin: bottom center;
-  -webkit-transform: rotateX( 0deg ) translateY( 0 ) scaleY(1);
-  transform: rotateX( 0deg ) translateY( 0 ) scaleY( 1 );
-  transition: 1s;
-}
-
-.size-link.fade-out {
-  -webkit-transform-origin: top center;
-  transform-origin: top center;
-  -webkit-transform: rotateX( 90deg ) translateY( -100% ) scaleY(0);
-  transform: rotateX( 90deg ) translateY( -100% ) scaleY(0);
-  transition: 1s;
-}
-
-.size-box.fade-out {
-  -webkit-transform-origin: bottom center;
-  transform-origin: bottom center;
-  -webkit-transform: rotateX( 90deg ) translateY( -100% ) scaleY(0);
-  transform: rotateX( 90deg ) translateY( 100% ) scaleY(0);
-  transition: 1s;
-}
-
-// spinner - adapted from http://codepen.io/Thomas-Lebeau/pen/csHqx
-
-.spinner {
-  width: 75px;
-}
-
-.input-group-btn-vertical {
-  position: relative;
-  white-space: nowrap;
-  width: 1%;
-  vertical-align: middle;
-  display: table-cell;
-}
-
-.input-group-btn-vertical > .btn {
-  display: block;
-  float: none;
-  width: 100%;
-  max-width: 100%;
-  padding: 8px;
-  margin-left: -1px;
-  position: relative;
-  border-radius: 0;
-}
-
-.input-group-btn-vertical > .btn:first-child {
-  border-top-right-radius: 4px;
-}
-
-.input-group-btn-vertical > .btn:last-child {
-  margin-top: -2px;
-  border-bottom-right-radius: 4px;
-}
-
-.input-group-btn-vertical span {
-  font-size: 8pt;
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: auto;
-  width: 100%;
-}
-
-//utility
-
-.noselect {
-  -webkit-touch-callout: none;
-  -webkit-user-select: none;
-  -khtml-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
 }

@@ -2,3 +2,4 @@ node_modules
 dist
 elm-stuff
 npm-debug.log
+elm.js

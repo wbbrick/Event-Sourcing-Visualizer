@@ -125,6 +125,10 @@ eventStoredView event =
         Types.Create -> ( "success", "Create" )
         Types.Delete -> ( "warning", "Delete" )
         Types.Update -> ( "info", "Update" )
+    completedSpan =
+      if event.payload.completed
+      then span [ class "complete glyphicon glyphicon-ok"] []
+      else span [ class "incomplete glyphicon glyphicon-remove"] []
   in
     tr
     [ class eventClass ]
@@ -132,6 +136,7 @@ eventStoredView event =
      td [] [ text ( toString event.payload.id ) ]
     , td [] [ text eventName ]
     , td [] [ text event.payload.description ]
+    , td [] [ completedSpan ]
     ]
 
 wireView : ( List Event ) -> ( List ( Html Msg ) )
@@ -145,11 +150,26 @@ storeView: ( List Event ) -> ( List ( Html Msg ) )
 storeView events =
   let
     isStored = (\ev -> ev.progress == 1)
+    headers =
+      thead []
+        [
+         tr []
+           [
+            td [] [ text "ID" ]
+           , td [] [ text "Type" ]
+           , td [] [ text "Summary" ]
+           , td [] [ span [ class "glyphicon glyphicon-saved" ] [] ]
+           ]
+        ]
   in
     [
      table
        [ class "table table-condensed" ]
-        ( List.map eventStoredView ( List.filter isStored events ) )
+       [
+        headers
+       , tbody []
+         ( List.map eventStoredView ( List.filter isStored events ) )
+       ]
     ]
 
 mainView : Model -> Html Msg
@@ -164,11 +184,11 @@ mainView model =
           div [ class "todo-input col-md-4" ] [ App.map TodoInputMsg ( TodoInput.view model.todoInputModel ) ]
          , div [ class "input-logger-wire wire col-md-4" ] ( wireView model.events )
          , div
-            [ class "logger col-md-4" ] (storeView model.events )
+            [ class "event-store col-md-4" ] (storeView model.events )
          ]
          , div [ class "row lower-row" ]
          [
-          div [ class "event-store col-md-5" ] []
+          div [ class "output col-md-5" ] []
          , div [ class "store-view-wire wire col-md-2" ] []
          , div [ class "materialized-view col-md-5" ] []
          ]

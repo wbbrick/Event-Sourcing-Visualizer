@@ -54,7 +54,7 @@ update message model =
 
       Delete todo ->
         (
-         { todos = List.filter (\t -> t == todo) model.todos
+         { todos = List.filter (\t -> t /= todo) model.todos
          , newTodo = model.newTodo
          , nextId = model.nextId
          }
@@ -104,10 +104,23 @@ update message model =
 
 todoView : Todo -> Html Msg
 todoView todo =
-  ul [ class "todo" ]
+  li [ class "todo form" ]
     [
-     input [ type' "checkbox", class "completed", onCheck ( Switch todo ) ] []
-     , input [ Html.Attributes.value todo.description, onInput ( UpdateDescription todo ) ] []
+     div [ class "input-group" ]
+       [
+        div [ class "input-group-addon" ]
+          [
+           input [ type' "checkbox", onCheck ( Switch todo ) ] []
+          ]
+       , input [ type' "text", Html.Attributes.value todo.description, class "form-control", onInput ( UpdateDescription todo ) ] []
+       , div [ class "input-group-btn" ]
+         [
+          button [ type' "button", class "form-control btn btn-danger", onClick ( Delete todo ) ]
+            [
+             span [ class "glyphicon glyphicon-remove" ] []
+            ]
+         ]
+       ]
     ]
 
 newTodoView : Todo -> Html Msg
@@ -120,7 +133,8 @@ newTodoView todo =
    Html.Attributes.value todo.description
   , onInput ( UpdateNewDescription )
   , onBlur ( Create todo )
-  , on "keyup" ( Json.map tagger keyCode )] []
+  , on "keyup" ( Json.map tagger keyCode )
+  ] []
 
 
 view : Model -> Html Msg
@@ -128,6 +142,6 @@ view model =
   div []
     [
      newTodoView model.newTodo,
-     li [ class "todos" ]
+     ul [ class "todos" ]
        ( List.map todoView model.todos )
     ]

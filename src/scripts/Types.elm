@@ -4,7 +4,8 @@ type EventType = Update | Delete | Create
 
 type alias Todo =
   {
-    completed: Bool
+    id: Int
+  , completed: Bool
   , description: String
   }
 
@@ -12,12 +13,13 @@ type alias Event =
   {
     type': EventType
   , payload: Todo
-  , progress: Int
+  , progress: Float
   }
 
-emptyTodo : Todo
-emptyTodo =
+emptyTodo : Int -> Todo
+emptyTodo id =
   {
-    completed = False
+    id = id
+  , completed = False
   , description = ""
   }

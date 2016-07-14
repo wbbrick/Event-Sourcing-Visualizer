@@ -9,12 +9,14 @@ import Types exposing (..)
 type alias Model =
   { todos: ( List Todo )
   , newTodo: Todo
+  , nextId : Int
   }
 
 init : Model
 init =
   { todos = []
-  , newTodo = emptyTodo
+  , newTodo = emptyTodo 1
+  , nextId = 2
   }
 
 -- MESSAGES
@@ -35,16 +37,17 @@ update message model =
       NoOp ->
         model ! []
 
-      Create ->
+      Create todo ->
         let
           newTodoList =
-            if model.newTodo.description == ""
+            if todo.description == ""
             then model.todos
-            else model.newTodo :: model.todos
+            else todo :: model.todos
         in
         (
          { todos = newTodoList
-         , newTodo = emptyTodo
+         , newTodo = emptyTodo model.nextId
+         , nextId = model.nextId + 1
          }
         , Cmd.none
         )
@@ -53,6 +56,7 @@ update message model =
         (
          { todos = List.filter (\t -> t == todo) model.todos
          , newTodo = model.newTodo
+         , nextId = model.nextId
          }
          , Cmd.none
         )
@@ -65,6 +69,7 @@ update message model =
         (
          { todos = ( List.map mapper model.todos )
          , newTodo = model.newTodo
+         , nextId = model.nextId
          }
          , Cmd.none
         )
@@ -77,17 +82,22 @@ update message model =
         (
          { todos =  ( List.map mapper model.todos )
          , newTodo = model.newTodo
+         , nextId = model.nextId
          }
         , Cmd.none
         )
 
       UpdateNewDescription text ->
-        (
-         { todos = model.todos
-         , newTodo = { emptyTodo | description = text }
-         }
-        , Cmd.none
-        )
+        let
+          newTodo = model.newTodo
+        in
+          (
+           { todos = model.todos
+           , newTodo = { newTodo | description = text }
+           , nextId = model.nextId
+           }
+          , Cmd.none
+          )
 
 
 -- VIEW
@@ -103,13 +113,13 @@ todoView todo =
 newTodoView : Todo -> Html Msg
 newTodoView todo =
   let
-    tagger keyCode = if keyCode == 13 then Create else NoOp
+    tagger keyCode = if keyCode == 13 then ( Create todo ) else NoOp
   in
   input
   [
    Html.Attributes.value todo.description
   , onInput ( UpdateNewDescription )
-  , onBlur Create todo
+  , onBlur ( Create todo )
   , on "keyup" ( Json.map tagger keyCode )] []
 
 

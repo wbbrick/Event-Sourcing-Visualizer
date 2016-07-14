@@ -181,10 +181,10 @@ mainView model =
       [
        div [ class "row upper-row" ]
          [
-          div [ class "todo-input col-md-4" ] [ App.map TodoInputMsg ( TodoInput.view model.todoInputModel ) ]
+          div [ class "todo-input well col-md-4" ] [ App.map TodoInputMsg ( TodoInput.view model.todoInputModel ) ]
          , div [ class "input-logger-wire wire col-md-4" ] ( wireView model.events )
          , div
-            [ class "event-store col-md-4" ] (storeView model.events )
+            [ class "event-store well well-sm col-md-4" ] (storeView model.events )
          ]
          , div [ class "row lower-row" ]
          [

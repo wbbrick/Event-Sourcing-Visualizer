@@ -38,14 +38,8 @@ update message model =
         model ! []
 
       Create todo ->
-        let
-          newTodoList =
-            if todo.description == ""
-            then model.todos
-            else todo :: model.todos
-        in
         (
-         { todos = newTodoList
+         { todos =  todo :: model.todos
          , newTodo = emptyTodo model.nextId
          , nextId = model.nextId + 1
          }
@@ -126,16 +120,23 @@ todoView todo =
 newTodoView : Todo -> Html Msg
 newTodoView todo =
   let
-    tagger keyCode = if keyCode == 13 then ( Create todo ) else NoOp
+    createIfExists todo = if todo.description /= "" then ( Create todo ) else NoOp
+    tagger keyCode = if keyCode == 13 then ( createIfExists todo ) else NoOp
   in
-  input
-  [
-   Html.Attributes.value todo.description
-  , onInput ( UpdateNewDescription )
-  , onBlur ( Create todo )
-  , on "keyup" ( Json.map tagger keyCode )
-  ] []
-
+    div
+    [ class "input-group input-group-lg" ]
+    [
+     input
+       [
+        type' "text"
+       , class "form-control"
+       , placeholder "New Todo..."
+       , Html.Attributes.value todo.description
+       , onInput ( UpdateNewDescription )
+       , onBlur ( createIfExists todo )
+       , on "keyup" ( Json.map tagger keyCode )
+       ] []
+    ]
 
 view : Model -> Html Msg
 view model =

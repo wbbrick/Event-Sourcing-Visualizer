@@ -1,16 +1,21 @@
 module TodoInput exposing (..)
 
 import Html exposing (..)
-import Html.Events exposing (onClick, onInput, onCheck, onWithOptions, targetValue)
+import Html.Events exposing (onClick, onInput, onCheck, onBlur, targetValue, on, keyCode)
+import Json.Decode as Json
 import Html.Attributes exposing (..)
--- import String exposing ( toInt )
-import Json.Decode exposing (..)
 import Types exposing (..)
 
+type alias Model =
+  { todos: ( List Todo )
+  , newTodo: Todo
+  }
 
-type alias Model = ( List Todo )
 init : Model
-init = []
+init =
+  { todos = []
+  , newTodo = emptyTodo
+  }
 
 -- MESSAGES
 
@@ -20,6 +25,7 @@ type Msg
     | Delete Todo
     | Switch Todo Bool
     | UpdateDescription Todo String
+    | UpdateNewDescription String
 
 -- UPDATE
 
@@ -28,25 +34,60 @@ update message model =
     case message of
       NoOp ->
         model ! []
-      Create todo ->
-        ( todo :: model , Cmd.none )
+
+      Create ->
+        let
+          newTodoList =
+            if model.newTodo.description == ""
+            then model.todos
+            else model.newTodo :: model.todos
+        in
+        (
+         { todos = newTodoList
+         , newTodo = emptyTodo
+         }
+        , Cmd.none
+        )
 
       Delete todo ->
-        ( List.filter (\t -> t == todo) model, Cmd.none )
+        (
+         { todos = List.filter (\t -> t == todo) model.todos
+         , newTodo = model.newTodo
+         }
+         , Cmd.none
+        )
 
       Switch todo state ->
         let
           mapper =
             (\t -> if t == todo then { t | completed = state } else t )
         in
-        ( ( List.map mapper model ), Cmd.none )
+        (
+         { todos = ( List.map mapper model.todos )
+         , newTodo = model.newTodo
+         }
+         , Cmd.none
+        )
 
       UpdateDescription todo text ->
         let
           mapper =
             (\t -> if t == todo then { t | description = text } else t )
         in
-        ( ( List.map mapper model ), Cmd.none )
+        (
+         { todos =  ( List.map mapper model.todos )
+         , newTodo = model.newTodo
+         }
+        , Cmd.none
+        )
+
+      UpdateNewDescription text ->
+        (
+         { todos = model.todos
+         , newTodo = { emptyTodo | description = text }
+         }
+        , Cmd.none
+        )
 
 
 -- VIEW
@@ -59,33 +100,24 @@ todoView todo =
      , input [ Html.Attributes.value todo.description, onInput ( UpdateDescription todo ) ] []
     ]
 
-todoDecoder : Decoder Msg
-todoDecoder =
+newTodoView : Todo -> Html Msg
+newTodoView todo =
   let
-    todo =
-      object2 Todo
-        ("completed" := bool)
-        ("description" := string)
+    tagger keyCode = if keyCode == 13 then Create else NoOp
   in
-    Json.Decode.map Create todo
-
-newTodoView : Html Msg
-newTodoView =
-  let
-    options = { stopPropagation = True, preventDefault = True }
-  in
-  Html.form [ onWithOptions "input" options todoDecoder  ]
-    [
-     input [ type' "checkbox", class "completed" ] []
-    , input [ Html.Attributes.value "" ] []
-    ]
+  input
+  [
+   Html.Attributes.value todo.description
+  , onInput ( UpdateNewDescription )
+  , onBlur Create todo
+  , on "keyup" ( Json.map tagger keyCode )] []
 
 
 view : Model -> Html Msg
 view model =
   div []
     [
-     newTodoView,
+     newTodoView model.newTodo,
      li [ class "todos" ]
-       ( List.map todoView model )
+       ( List.map todoView model.todos )
     ]

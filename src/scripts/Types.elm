@@ -14,3 +14,10 @@ type alias Event =
   , payload: Todo
   , progress: Int
   }
+
+emptyTodo : Todo
+emptyTodo =
+  {
+    completed = False
+  , description = ""
+  }

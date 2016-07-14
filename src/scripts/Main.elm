@@ -1,6 +1,8 @@
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
+import Types exposing (..)
+import TodoInput exposing (..)
 
 main : Program Never
 main =
@@ -13,26 +15,9 @@ main =
 
 -- Model
 
-type Status = Incomplete | Complete
-
-type EventType = Update | Delete | Create
-
-type alias Todo =
-  {
-    status: Status
-  , description: String
-  }
-
-type alias Event =
-  {
-    type': EventType
-  , payload: Todo
-  , progress: Int
-  }
-
 type alias Model =
   {
-    todos: ( List Todo )
+    todoInputModel: TodoInput.Model
   , events: ( List Event )
   }
 
@@ -41,7 +26,7 @@ init : (Model, Cmd Msg)
 init =
   (
    {
-     todos = []
+     todoInputModel = TodoInput.init
    , events = []
    }
   , Cmd.none
@@ -51,12 +36,20 @@ init =
 
 type Msg
     = NoOp
+    | TodoInputMsg TodoInput.Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
   case msg of
     NoOp ->
       model ! []
+    TodoInputMsg subMsg ->
+       let
+         (updatedTodos, todoInputCmd) = TodoInput.update subMsg model.todoInputModel
+         newModel = { model | todoInputModel = updatedTodos }
+       in
+         ( newModel, Cmd.map TodoInputMsg todoInputCmd)
+
 
 -- VIEW
 
@@ -76,7 +69,7 @@ mainView model =
       [
        div [ class "row upper-row" ]
          [
-          div [ class "todo-input col-md-4" ] []
+          div [ class "todo-input col-md-4" ] [ App.map TodoInputMsg ( TodoInput.view model.todoInputModel ) ]
          , div [ class "input-logger-wire wire col-md-4" ] []
          , div [ class "logger col-md-4" ] []
          ]

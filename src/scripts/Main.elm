@@ -58,6 +58,16 @@ createEvent subMsg =
       }
     _ -> Nothing
 
+condenseEvents : ( List Event ) -> ( List Todo )
+condenseEvents events =
+  let reducer event todoList =
+    case event.type' of
+      Types.Create -> event.payload :: todoList
+      Types.Update -> List.map (\todo -> if todo.id == event.payload.id then event.payload else todo ) todoList
+      Types.Delete -> List.filter (\todo -> todo.id /= event.payload.id ) todoList
+  in
+  List.foldr reducer [] events
+
 -- UPDATE
 
 type Msg
@@ -96,6 +106,13 @@ navBar =
      div [ class "navbar-header" ] [ a [ class "navbar-brand", href "#" ] [ text "Event Sourcing" ] ]
     ]
 
+completedMark : Bool -> Html Msg
+completedMark isCompleted =
+  if isCompleted
+  then span [ class "complete glyphicon glyphicon-ok"] []
+  else span [ class "incomplete glyphicon glyphicon-remove"] []
+
+
 eventInTransitView : Event -> Html Msg
 eventInTransitView event =
   let
@@ -117,6 +134,13 @@ eventInTransitView event =
          ]
       ]
 
+wireView : ( List Event ) -> ( List ( Html Msg ) )
+wireView events =
+  let
+    isInTransit = (\ev -> ev.progress > 0 && ev.progress < 1)
+  in
+    ( List.map eventInTransitView ( List.filter isInTransit events ) )
+
 eventStoredView : Event -> Html Msg
 eventStoredView event =
   let
@@ -125,10 +149,6 @@ eventStoredView event =
         Types.Create -> ( "success", "Create" )
         Types.Delete -> ( "warning", "Delete" )
         Types.Update -> ( "info", "Update" )
-    completedSpan =
-      if event.payload.completed
-      then span [ class "complete glyphicon glyphicon-ok"] []
-      else span [ class "incomplete glyphicon glyphicon-remove"] []
   in
     tr
     [ class eventClass ]
@@ -136,15 +156,8 @@ eventStoredView event =
      td [] [ text ( toString event.payload.id ) ]
     , td [] [ text eventName ]
     , td [] [ text event.payload.description ]
-    , td [] [ completedSpan ]
+    , td [] [ completedMark event.payload.completed ]
     ]
-
-wireView : ( List Event ) -> ( List ( Html Msg ) )
-wireView events =
-  let
-    isInTransit = (\ev -> ev.progress > 0 && ev.progress < 1)
-  in
-    ( List.map eventInTransitView ( List.filter isInTransit events ) )
 
 storeView: ( List Event ) -> ( List ( Html Msg ) )
 storeView events =
@@ -172,8 +185,45 @@ storeView events =
        ]
     ]
 
+
+materializedTodoView : Todo -> Html Msg
+materializedTodoView todo =
+  tr
+    []
+    [
+     td [] [ text todo.description ]
+    , td [] [ completedMark todo.completed ]
+    ]
+
+
+materializedView: ( List Todo ) -> ( List ( Html Msg ) )
+materializedView todos =
+  let
+    headers =
+      thead []
+        [
+         tr []
+           [
+            td [] [ text "Summary" ]
+           , td [] [ span [ class "glyphicon glyphicon-saved" ] [] ]
+           ]
+        ]
+  in
+    [
+     table
+       [ class "table table-condensed" ]
+       [
+        headers
+       , tbody []
+         ( List.map materializedTodoView todos )
+       ]
+    ]
+
 mainView : Model -> Html Msg
 mainView model =
+  let
+    storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
+  in
   div [ ]
     [
      nav [ class "navbar navbar-default" ] [ navBar ]
@@ -190,7 +240,7 @@ mainView model =
          [
           div [ class "output col-md-5" ] []
          , div [ class "store-view-wire wire col-md-2" ] []
-         , div [ class "materialized-view col-md-5" ] []
+         , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents storedEvents ) )
          ]
       ]
     ]

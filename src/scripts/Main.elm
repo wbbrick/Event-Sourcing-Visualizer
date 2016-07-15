@@ -121,7 +121,7 @@ eventInTransitView event =
         Types.Create -> ( "success", "Create" )
         Types.Delete -> ( "warning", "Delete" )
         Types.Update -> ( "info", "Update" )
-    distance = ( toString ( Basics.round ( 100 * event.progress ) ) ++ "%" )
+    distance = ( toString ( ( Basics.round ( 150 * event.progress ) - 25 ) ) ++ "%" )
   in
     h3 []
       [
@@ -139,6 +139,8 @@ wireView events =
   let
     isInTransit = (\ev -> ev.progress > 0 && ev.progress < 1)
   in
+    ( div [ class "hr" ] [ div [ class "arrow-head" ] [] ] )
+      ::
     ( List.map eventInTransitView ( List.filter isInTransit events ) )
 
 eventStoredView : Event -> Html Msg
@@ -236,6 +238,7 @@ mainView model =
          , div
             [ class "event-store well well-sm col-md-4" ] (storeView model.events )
          ]
+         , div [ class "row middle-row" ] []
          , div [ class "row lower-row" ]
          [
           div [ class "output col-md-5" ] []

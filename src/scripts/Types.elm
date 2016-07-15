@@ -16,6 +16,8 @@ type alias Event =
   , progress: Float
   }
 
+type CurrentEvent = Latest | Index Int
+
 emptyTodo : Int -> Todo
 emptyTodo id =
   {

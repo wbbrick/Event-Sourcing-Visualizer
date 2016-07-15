@@ -1,9 +1,11 @@
 import Html exposing (..)
 import Html.App as App
 import Html.Attributes exposing (..)
+import Html.Events exposing (onClick)
 import Types exposing (..)
 import TodoInput exposing (..)
 import Time exposing (Time, millisecond)
+import Debug exposing (log)
 
 main : Program Never
 main =
@@ -20,6 +22,7 @@ type alias Model =
   {
     todoInputModel: TodoInput.Model
   , events: ( List Event )
+  , currentEvent: CurrentEvent
   }
 
 
@@ -29,6 +32,7 @@ init =
    {
      todoInputModel = TodoInput.init
    , events = []
+   , currentEvent = Latest
    }
   , Cmd.none
   )
@@ -73,6 +77,7 @@ condenseEvents events =
 type Msg
     = NoOp
     | TodoInputMsg TodoInput.Msg
+    | SetCurrent Int
     | Tick Float
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -95,6 +100,12 @@ update msg model =
         eventMapper = (\ev -> { ev | progress = Basics.min ( ev.progress + 0.004 ) 1 } )
       in
       ( { model | events = List.map eventMapper model.events }, Cmd.none )
+    SetCurrent idx ->
+      let
+         storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
+         current = if idx == 0 then Latest else Index idx
+      in
+      ( { model | currentEvent = current }, Cmd.none )
 
 
 -- VIEW
@@ -119,12 +130,12 @@ eventInTransitView event =
     ( eventClass, eventName ) =
       case event.type' of
         Types.Create -> ( "success", "Create" )
-        Types.Delete -> ( "warning", "Delete" )
+        Types.Delete -> ( "danger", "Delete" )
         Types.Update -> ( "info", "Update" )
     quadEaseProgress = if event.progress <= 0.5
                   then ( ( event.progress * 2 ) ^ 4 ) / 2
                   else ( 1 - ( ( ( 1 - event.progress ) * 2 ) ^ 4 ) / 2 )
-    distance = ( toString ( ( Basics.round ( 150 * quadEaseProgress ) - 25 ) ) ++ "%" )
+    distance = ( toString ( ( Basics.round ( 120 * quadEaseProgress ) - 10 ) ) ++ "%" )
   in
     h3 []
       [
@@ -146,17 +157,23 @@ wireView events =
       ::
     ( List.map eventInTransitView ( List.filter isInTransit events ) )
 
-eventStoredView : Event -> Html Msg
-eventStoredView event =
+eventStoredView : Int -> Int -> Event -> Html Msg
+eventStoredView highlight idx event =
   let
-    ( eventClass, eventName ) =
+    eventClass =
+      case ( highlight == idx, event.type' ) of
+        ( True, _ ) -> "active"
+        ( _, Types.Create ) -> "success"
+        ( _, Types.Delete ) -> "danger"
+        ( _, Types.Update ) -> "info"
+    eventName =
       case event.type' of
-        Types.Create -> ( "success", "Create" )
-        Types.Delete -> ( "warning", "Delete" )
-        Types.Update -> ( "info", "Update" )
+        Types.Create -> "Create"
+        Types.Delete -> "Delete"
+        Types.Update -> "Update"
   in
     tr
-    [ class eventClass ]
+    [ class eventClass, onClick ( SetCurrent idx ) ]
     [
      td [] [ text ( toString event.payload.id ) ]
     , td [] [ text eventName ]
@@ -164,8 +181,8 @@ eventStoredView event =
     , td [] [ completedMark event.payload.completed ]
     ]
 
-storeView: ( List Event ) -> ( List ( Html Msg ) )
-storeView events =
+storeView: CurrentEvent -> ( List Event ) -> ( List ( Html Msg ) )
+storeView current events =
   let
     isStored = (\ev -> ev.progress == 1)
     headers =
@@ -179,6 +196,10 @@ storeView events =
            , td [] [ span [ class "glyphicon glyphicon-saved" ] [] ]
            ]
         ]
+    highlightIdx =
+      case current of
+        Latest -> 0
+        Index n -> n
   in
     [
      table
@@ -186,7 +207,7 @@ storeView events =
        [
         headers
        , tbody []
-         ( List.map eventStoredView ( List.filter isStored events ) )
+         ( List.indexedMap ( eventStoredView highlightIdx ) ( List.filter isStored events ) )
        ]
     ]
 
@@ -228,6 +249,10 @@ mainView : Model -> Html Msg
 mainView model =
   let
     storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
+    eventsToCurrent =
+      case model.currentEvent of
+        Latest -> storedEvents
+        Index n -> List.reverse ( List.take ( ( List.length storedEvents ) - n ) ( List.reverse storedEvents ) )
   in
   div [ ]
     [
@@ -239,14 +264,14 @@ mainView model =
           div [ class "todo-input well col-md-4" ] [ App.map TodoInputMsg ( TodoInput.view model.todoInputModel ) ]
          , div [ class "input-logger-wire wire col-md-4" ] ( wireView model.events )
          , div
-            [ class "event-store well well-sm col-md-4" ] (storeView model.events )
+            [ class "event-store well well-sm col-md-4" ] ( storeView model.currentEvent model.events )
          ]
          , div [ class "row middle-row" ] []
          , div [ class "row lower-row" ]
          [
           div [ class "output col-md-5" ] []
          , div [ class "store-view-wire wire col-md-2" ] []
-         , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents storedEvents ) )
+         , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents eventsToCurrent ) )
          ]
       ]
     ]

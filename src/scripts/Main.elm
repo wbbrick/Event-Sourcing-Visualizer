@@ -5,7 +5,6 @@ import Html.Events exposing (onClick)
 import Types exposing (..)
 import TodoInput exposing (..)
 import Time exposing (Time, millisecond)
-import Debug exposing (log)
 
 main : Program Never
 main =
@@ -70,7 +69,7 @@ condenseEvents events =
       Types.Update -> List.map (\todo -> if todo.id == event.payload.id then event.payload else todo ) todoList
       Types.Delete -> List.filter (\todo -> todo.id /= event.payload.id ) todoList
   in
-  List.foldr reducer [] events
+  List.foldl reducer [] events
 
 -- UPDATE
 
@@ -90,7 +89,7 @@ update msg model =
          (updatedTodos, todoInputCmd) = TodoInput.update subMsg model.todoInputModel
          newEvent =  createEvent subMsg
          newEventList = case newEvent of
-                          Just event -> event :: model.events
+                          Just event -> model.events ++ [ event ]
                           Nothing -> model.events
          newModel = { model | todoInputModel = updatedTodos, events = newEventList }
        in
@@ -103,7 +102,7 @@ update msg model =
     SetCurrent idx ->
       let
          storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
-         current = if idx == 0 then Latest else Index idx
+         current = if idx >= ( List.length storedEvents ) - 1 then Latest else Index idx
       in
       ( { model | currentEvent = current }, Cmd.none )
 
@@ -175,7 +174,8 @@ eventStoredView highlight idx event =
     tr
     [ class eventClass, onClick ( SetCurrent idx ) ]
     [
-     td [] [ text ( toString event.payload.id ) ]
+     td [] [ text ( toString idx ) ]
+    , td [] [ text ( toString event.payload.id ) ]
     , td [] [ text eventName ]
     , td [] [ text event.payload.description ]
     , td [] [ completedMark event.payload.completed ]
@@ -185,12 +185,14 @@ storeView: CurrentEvent -> ( List Event ) -> ( List ( Html Msg ) )
 storeView current events =
   let
     isStored = (\ev -> ev.progress == 1)
+    storedEvents = List.filter isStored events
     headers =
       thead []
         [
          tr []
            [
-            td [] [ text "ID" ]
+            td [] [ text "Step" ]
+           , td [] [ text "ID" ]
            , td [] [ text "Type" ]
            , td [] [ text "Summary" ]
            , td [] [ span [ class "glyphicon glyphicon-saved" ] [] ]
@@ -198,7 +200,7 @@ storeView current events =
         ]
     highlightIdx =
       case current of
-        Latest -> 0
+        Latest -> ( List.length storedEvents - 1 )
         Index n -> n
   in
     [
@@ -207,7 +209,7 @@ storeView current events =
        [
         headers
        , tbody []
-         ( List.indexedMap ( eventStoredView highlightIdx ) ( List.filter isStored events ) )
+         ( List.indexedMap ( eventStoredView highlightIdx ) storedEvents )
        ]
     ]
 
@@ -252,7 +254,7 @@ mainView model =
     eventsToCurrent =
       case model.currentEvent of
         Latest -> storedEvents
-        Index n -> List.reverse ( List.take ( ( List.length storedEvents ) - n ) ( List.reverse storedEvents ) )
+        Index n -> List.take ( n + 1 ) storedEvents
   in
   div [ ]
     [

@@ -92,7 +92,7 @@ update msg model =
          ( newModel, Cmd.map TodoInputMsg todoInputCmd)
     Tick newTime ->
       let
-        eventMapper = (\ev -> { ev | progress = Basics.min ( ev.progress + 0.005 ) 1 } )
+        eventMapper = (\ev -> { ev | progress = Basics.min ( ev.progress + 0.004 ) 1 } )
       in
       ( { model | events = List.map eventMapper model.events }, Cmd.none )
 
@@ -121,7 +121,10 @@ eventInTransitView event =
         Types.Create -> ( "success", "Create" )
         Types.Delete -> ( "warning", "Delete" )
         Types.Update -> ( "info", "Update" )
-    distance = ( toString ( ( Basics.round ( 150 * event.progress ) - 25 ) ) ++ "%" )
+    quadEaseProgress = if event.progress <= 0.5
+                  then ( ( event.progress * 2 ) ^ 4 ) / 2
+                  else ( 1 - ( ( ( 1 - event.progress ) * 2 ) ^ 4 ) / 2 )
+    distance = ( toString ( ( Basics.round ( 150 * quadEaseProgress ) - 25 ) ) ++ "%" )
   in
     h3 []
       [

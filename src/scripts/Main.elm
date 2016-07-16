@@ -61,6 +61,17 @@ createEvent subMsg =
       }
     _ -> Nothing
 
+getStoredEvents : ( List Event ) -> ( List Event )
+getStoredEvents events =
+  List.filter ( \ev -> ev.progress == 1 ) events
+
+
+getUpToCurrentEvents : CurrentEvent -> ( List Event ) -> ( List Event )
+getUpToCurrentEvents current events =
+  case current of
+    Latest -> events
+    Index n -> List.take ( n + 1 ) events
+
 condenseEvents : ( List Event ) -> ( List Todo )
 condenseEvents events =
   let reducer event todoList =
@@ -101,7 +112,7 @@ update msg model =
       ( { model | events = List.map eventMapper model.events }, Cmd.none )
     SetCurrent idx ->
       let
-         storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
+         storedEvents = getStoredEvents model.events
          current = if idx >= ( List.length storedEvents ) - 1 then Latest else Index idx
       in
       ( { model | currentEvent = current }, Cmd.none )
@@ -184,8 +195,7 @@ eventStoredView highlight idx event =
 storeView: CurrentEvent -> ( List Event ) -> ( List ( Html Msg ) )
 storeView current events =
   let
-    isStored = (\ev -> ev.progress == 1)
-    storedEvents = List.filter isStored events
+    storedEvents = getStoredEvents events
     headers =
       thead []
         [
@@ -247,14 +257,27 @@ materializedView todos =
        ]
     ]
 
+outputTodoView : Todo -> Html Msg
+outputTodoView todo =
+  let
+    todoClass =
+      if todo.completed then " complete" else " incomplete"
+  in
+    li [ class ( "output-todo" ++ todoClass ) ]
+      [
+       text todo.description
+      ]
+
+outputView : ( List Todo ) -> Html Msg
+outputView todos =
+  ul [ class "output-todos" ]
+    ( List.map outputTodoView todos )
+
+
 mainView : Model -> Html Msg
 mainView model =
   let
-    storedEvents = List.filter ( \ev -> ev.progress == 1 ) model.events
-    eventsToCurrent =
-      case model.currentEvent of
-        Latest -> storedEvents
-        Index n -> List.take ( n + 1 ) storedEvents
+    materializedTodos = ( condenseEvents ( getUpToCurrentEvents model.currentEvent ( getStoredEvents model.events ) ) )
   in
   div [ ]
     [
@@ -277,15 +300,15 @@ mainView model =
         ]
       , div [ class "row lower-row" ]
         [
-         div [ class "output well col-md-4" ] []
+         div [ class "output well col-md-4" ] [ ( outputView materializedTodos ) ]
         , div [ class "store-view-wire wire col-md-4" ] [
             div [ class "hr" ] [ div [ class "arrow-head-left" ] [] ]
            ]
-        , div [ class "materialized-view well col-md-4" ] ( materializedView ( condenseEvents eventsToCurrent ) )
+        , div [ class "materialized-view well col-md-4" ] ( materializedView materializedTodos )
         ]
       ]
     ]
-    
+
 
 -- SUBSCRIPTIONS
 

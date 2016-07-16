@@ -152,7 +152,7 @@ wireView events =
   let
     isInTransit = (\ev -> ev.progress > 0 && ev.progress < 1)
   in
-    ( div [ class "hr" ] [ div [ class "arrow-head" ] [] ] )
+    ( div [ class "hr" ] [ div [ class "arrow-head-right" ] [] ] )
       ::
     ( List.map eventInTransitView ( List.filter isInTransit events ) )
 
@@ -270,14 +270,22 @@ mainView model =
          ]
       , div [ class "row middle-row" ]
         [
-         div [ class "up-arrow col-md-1 col-md-offset-3" ] []
-        , div [ class "down-arrow col-md-1 col-md-offset-5" ] []
+         div [ class "wire col-md-1 col-md-offset-2" ]
+           [
+            div [ class "vr" ] [ div [ class "arrow-head-up" ] [] ]
+           ]
+        , div [ class "wire col-md-1 col-md-offset-6" ]
+          [
+           div [ class "vr" ] [ div [ class "arrow-head-down" ] [] ]
+          ]
         ]
       , div [ class "row lower-row" ]
         [
-         div [ class "output col-md-5" ] []
-        , div [ class "store-view-wire wire col-md-2" ] []
-        , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents eventsToCurrent ) )
+         div [ class "output well col-md-4" ] []
+        , div [ class "store-view-wire wire col-md-4" ] [
+            div [ class "hr" ] [ div [ class "arrow-head-left" ] [] ]
+           ]
+        , div [ class "materialized-view well col-md-4" ] ( materializedView ( condenseEvents eventsToCurrent ) )
         ]
       ]
     ]

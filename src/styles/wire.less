@@ -12,7 +12,7 @@
     width: 100%;
     height: 2px;
     border-color: black;
-    .arrow-head {
+    .arrow-head-right {
       position: absolute;
       right: 0;
       top: 50%;
@@ -22,6 +22,51 @@
       border-top: 10px solid transparent;
       border-bottom: 10px solid transparent;
       border-left: 10px solid black;
+    }
+    .arrow-head-left {
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 0; 
+      height: 0; 
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 10px solid black;
+    }
+  }
+
+  .vr {
+    position: absolute;
+    transform: translateX(-50%);
+    left: 50%;
+    background: #000 no-repeat scroll center;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    width: 2px;
+    border-color: black;
+    .arrow-head-up {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 10px solid black;
+    }
+    .arrow-head-down {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0; 
+      height: 0; 
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-top: 10px solid black;
     }
   }
 

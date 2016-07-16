@@ -35,6 +35,7 @@
     "rimraf": "^2.5.2"
   },
   "dependencies": {
-    "bootstrap": "^3.3.6"
+    "bootstrap": "^3.3.6",
+    "bootswatch": "^3.3.6"
   }
 }

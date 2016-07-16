@@ -124,7 +124,7 @@ newTodoView todo =
     tagger keyCode = if keyCode == 13 then ( createIfExists todo ) else NoOp
   in
     div
-    [ class "input-group input-group-lg" ]
+    [ class "input-group input-group new-todo" ]
     [
      input
        [

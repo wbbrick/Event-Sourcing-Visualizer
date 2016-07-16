@@ -134,7 +134,7 @@ eventInTransitView event =
     quadEaseProgress = if event.progress <= 0.5
                   then ( ( event.progress * 2 ) ^ 4 ) / 2
                   else ( 1 - ( ( ( 1 - event.progress ) * 2 ) ^ 4 ) / 2 )
-    distance = ( toString ( ( Basics.round ( 120 * quadEaseProgress ) - 10 ) ) ++ "%" )
+    distance = ( toString ( ( Basics.round ( 140 * quadEaseProgress ) - 40 ) ) ++ "%" )
   in
     h3 []
       [
@@ -270,11 +270,7 @@ mainView model =
          ]
       , div [ class "row middle-row" ]
         [
-         div [ class "wire col-md-1 col-md-offset-2" ]
-           [
-            div [ class "vr" ] [ div [ class "arrow-head-up" ] [] ]
-           ]
-        , div [ class "wire col-md-1 col-md-offset-6" ]
+        div [ class "wire col-md-4 col-md-offset-8" ]
           [
            div [ class "vr" ] [ div [ class "arrow-head-down" ] [] ]
           ]

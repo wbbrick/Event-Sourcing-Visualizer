@@ -258,7 +258,7 @@ mainView model =
   in
   div [ ]
     [
-     nav [ class "navbar navbar-default" ] [ navBar ]
+     nav [ id "navbar", class "navbar navbar-default" ] [ navBar ]
     , div [ class "container main-view" ]
       [
        div [ class "row upper-row" ]
@@ -268,16 +268,20 @@ mainView model =
          , div
             [ class "event-store well well-sm col-md-4" ] ( storeView model.currentEvent model.events )
          ]
-         , div [ class "row middle-row" ] []
-         , div [ class "row lower-row" ]
-         [
-          div [ class "output col-md-5" ] []
-         , div [ class "store-view-wire wire col-md-2" ] []
-         , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents eventsToCurrent ) )
-         ]
+      , div [ class "row middle-row" ]
+        [
+         div [ class "up-arrow col-md-1 col-md-offset-3" ] []
+        , div [ class "down-arrow col-md-1 col-md-offset-5" ] []
+        ]
+      , div [ class "row lower-row" ]
+        [
+         div [ class "output col-md-5" ] []
+        , div [ class "store-view-wire wire col-md-2" ] []
+        , div [ class "materialized-view col-md-5" ] ( materializedView ( condenseEvents eventsToCurrent ) )
+        ]
       ]
     ]
-
+    
 
 -- SUBSCRIPTIONS
 
